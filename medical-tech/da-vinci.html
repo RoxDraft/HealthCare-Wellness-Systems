@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>da Vinci แยกส่วน</title>
+<meta name="description" content="แยกส่วนหุ่นยนต์ผ่าตัด da Vinci แบบ 3D และ 2D ส่วนประกอบ เคสที่ใช้ ผู้พัฒนา ทุกรุ่นตั้งแต่อดีต และจุดเริ่มต้นของเครื่องมือผ่าตัดแม่นยำสูง">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<script src="../assets/theme.js"></script>
+<style>
+/* Layout: reading column; the 3D stage sits beside an info panel and stacks under 860px */
+.toc{display:flex;gap:8px;flex-wrap:wrap}
+.toc a{font-size:13px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--surface)}
+.facts{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.fact b{display:block;font-family:var(--display);font-size:22px;line-height:1.2}
+.fact span{font-size:13px;color:var(--muted)}
+
+.viewer{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:stretch}
+@media (max-width:860px){.viewer{grid-template-columns:1fr}.stage{height:440px}}
+.stage{position:relative;background:var(--stage);border-radius:16px;overflow:hidden;height:min(68vh,560px);min-height:360px;touch-action:none}
+.stage canvas{display:block;width:100%!important;height:100%!important;cursor:grab}
+.stage .hint{position:absolute;left:12px;bottom:10px;font-family:var(--mono);font-size:11px;color:var(--stage-muted);pointer-events:none}
+.stage .ctrl{position:absolute;z-index:2;right:10px;top:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.stage .ctrl button{font:inherit;font-size:12px;background:rgba(255,255,255,.08);color:var(--stage-fg);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 12px;cursor:pointer;backdrop-filter:blur(4px)}
+.stage .ctrl button[aria-pressed="true"]{background:#3CC4A0;color:#06201a;border-color:#3CC4A0}
+.stage .fallback{position:absolute;inset:0;display:grid;place-items:center;color:var(--stage-fg);padding:24px;text-align:center}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.panel h3{font-size:19px}
+.panel .role{color:var(--muted);font-size:14px}
+.panel ul{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);border-radius:999px;padding:3px 10px;cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:6px 14px;cursor:pointer}
+.tabs button[aria-selected="true"]{border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;overflow-x:auto}
+.diagram svg{display:block;width:100%;min-width:680px;height:auto}
+.diagram .legend{display:grid;gap:8px 20px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));padding:12px 6px 4px;font-size:14px;min-width:0}
+.diagram .legend div{display:flex;gap:10px}
+.diagram .legend i{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--bg);background:var(--accent);border-radius:50%;width:22px;height:22px;flex:none;display:grid;place-items:center}
+svg .bx{fill:var(--surface2);stroke:var(--line);stroke-width:1.5}
+svg .bx.k{fill:color-mix(in srgb,var(--accent) 14%,var(--surface));stroke:var(--accent)}
+svg .t{fill:var(--fg);font-family:var(--display);font-size:16px;font-weight:600}
+svg .s{fill:var(--muted);font-family:var(--body);font-size:12.5px}
+svg .ln{stroke:var(--muted);stroke-width:1.8;fill:none}
+svg .ln.a{stroke:var(--accent)}
+svg .ln.o{stroke:var(--accent2);stroke-dasharray:6 5}
+svg .metal{fill:#AEB8B6;stroke:#6F7B79;stroke-width:1.2}
+svg .dark{fill:#3B4745}
+svg .num{fill:var(--accent)}
+svg .numt{fill:var(--bg);font-family:var(--mono);font-size:12px;font-weight:500}
+svg .wall{fill:color-mix(in srgb,var(--accent2) 30%,var(--surface));stroke:var(--accent2)}
+
+.timeline{position:relative;display:flex;flex-direction:column;gap:0;border-left:2px solid var(--line);margin-left:8px}
+.ev{position:relative;padding:0 0 22px 22px}
+.ev::before{content:"";position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--muted)}
+.ev.dv::before{background:var(--accent);border-color:var(--accent)}
+.ev .yr{font-family:var(--mono);font-size:13px;color:var(--accent)}
+.ev h4{font-size:16px;margin:2px 0}
+.ev p{color:var(--muted);font-size:14px;max-width:70ch}
+.era{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:6px 0 14px 22px}
+
+.why{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.why .card h3{font-size:16px}
+.pro-con{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.pro-con ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav" aria-label="เส้นทาง">
+    <span class="crumbs"><a href="../index.html">หน้าหลัก</a> / <a href="index.html">เทคโนโลยีการแพทย์</a> / <span>da Vinci</span></span>
+    <button class="theme-btn" type="button">☾ มืด</button>
+  </nav>
+
+  <header class="top">
+    <span class="eyebrow">หุ่นยนต์ช่วยผ่าตัด · Intuitive Surgical</span>
+    <h1>แยกส่วนหุ่นยนต์ผ่าตัด da Vinci</h1>
+    <p class="lead">da Vinci ไม่ได้ผ่าตัดเอง ศัลยแพทย์นั่งที่คอนโซลแล้วบังคับแขนหุ่นยนต์ทุกการเคลื่อนไหว ระบบช่วยด้วยภาพ 3 มิติขยายใหญ่ เครื่องมือที่มีข้อมือหมุนได้ในช่องท้อง การย่อการเคลื่อนไหวให้ละเอียด และการตัดอาการมือสั่น</p>
+    <nav class="toc" aria-label="ในหน้านี้">
+      <a href="#s-3d">โมเดล 3D</a><a href="#s-2d">แผนภาพ 2D</a><a href="#s-origin">จุดเริ่มต้น</a><a href="#s-models">ทุกรุ่น</a><a href="#s-cases">เคสที่ใช้</a><a href="#s-who">ผู้พัฒนา</a>
+    </nav>
+    <p class="note">โมเดล 3D และแผนภาพทุกภาพในหน้านี้วาดขึ้นใหม่แบบย่อเพื่ออธิบายหลักการ สัดส่วนไม่ตรงกับเครื่องจริง ตัวเลขยอดขายและจำนวนเคสมาจากรายงานของบริษัทถึงปี 2025 ควรตรวจสอบตัวเลขล่าสุดก่อนนำไปอ้างอิง</p>
+  </header>
+
+  <section aria-label="ตัวเลขสำคัญ" class="facts">
+    <div class="fact"><b>3 ส่วนหลัก</b><span>คอนโซลศัลยแพทย์, รถแขนหุ่นยนต์ข้างเตียง, รถประมวลภาพ</span></div>
+    <div class="fact"><b>7 องศาอิสระ</b><span>ของเครื่องมือ EndoWrist เทียบกับ 4 ของเครื่องมือส่องกล้องแบบตรง</span></div>
+    <div class="fact"><b>3:1 / 5:1</b><span>อัตราย่อการเคลื่อนไหว มือขยับ 3 ซม. ปลายเครื่องมือขยับ 1 ซม.</span></div>
+    <div class="fact"><b>~1 หมื่นเครื่อง</b><span>ติดตั้งทั่วโลก (ราวปี 2025) และหัตถการกว่า 2.5 ล้านครั้งต่อปี</span></div>
+  </section>
+
+  <!-- 3D -->
+  <section id="s-3d" aria-labelledby="h-3d">
+    <div class="sec-head">
+      <span class="eyebrow">01 · โมเดล 3 มิติ</span>
+      <h2 id="h-3d">ห้องผ่าตัด da Vinci (แบบ Xi) แตะชิ้นส่วนเพื่อดูหน้าที่</h2>
+      <p>ลากเพื่อหมุน เลื่อนหรือบีบนิ้วเพื่อซูม กด “แยกชิ้นส่วน” เพื่อยกแขน เครื่องมือ และส่วนของคอนโซลออกจากกัน</p>
+    </div>
+    <div class="viewer">
+      <div class="stage" id="stage">
+        <div class="ctrl">
+          <button type="button" id="btn-explode" aria-pressed="false">แยกชิ้นส่วน</button>
+          <button type="button" id="btn-spin" aria-pressed="false">หมุนอัตโนมัติ</button>
+          <button type="button" id="btn-reset">มุมเริ่มต้น</button>
+        </div>
+        <span class="hint">ลาก = หมุน · ล้อ/บีบ = ซูม · แตะ = เลือก</span>
+      </div>
+      <aside class="panel" aria-live="polite">
+        <span class="eyebrow" id="p-group">ชิ้นส่วน</span>
+        <h3 id="p-name">เลือกชิ้นส่วน</h3>
+        <p class="role" id="p-role">แตะชิ้นส่วนในโมเดล หรือเลือกจากรายการด้านล่าง</p>
+        <ul id="p-list"></ul>
+        <div class="chips" id="chips" role="group" aria-label="รายการชิ้นส่วน"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 2D -->
+  <section id="s-2d" aria-labelledby="h-2d">
+    <div class="sec-head">
+      <span class="eyebrow">02 · แผนภาพ 2 มิติ</span>
+      <h2 id="h-2d">ข้างในทำงานอย่างไร</h2>
+    </div>
+    <div class="tabs" role="tablist" aria-label="แผนภาพ">
+      <button role="tab" aria-selected="true" aria-controls="d-flow" id="t-flow">ระบบสั่งการ</button>
+      <button role="tab" aria-selected="false" aria-controls="d-wrist" id="t-wrist">เครื่องมือ EndoWrist แยกชิ้น</button>
+      <button role="tab" aria-selected="false" aria-controls="d-rcm" id="t-rcm">จุดหมุนคงที่ที่แผล</button>
+    </div>
+
+    <div class="diagram" role="tabpanel" id="d-flow" aria-labelledby="t-flow">
+      <svg viewBox="0 0 960 370" role="img" aria-label="แผนภาพการสั่งการจากมือศัลยแพทย์ถึงเครื่องมือ และภาพย้อนกลับจากกล้องถึงตาศัลยแพทย์">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="var(--muted)"/></marker>
+          <marker id="ara" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="var(--accent)"/></marker>
+          <marker id="aro" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="var(--accent2)"/></marker>
+        </defs>
+        <!-- force feedback (da Vinci 5) -->
+        <path class="ln o" d="M870 60 V30 H100 V58" marker-end="url(#aro)"/>
+        <text class="s" x="485" y="22" text-anchor="middle" style="fill:var(--accent2)">da Vinci 5: แรงต้านจากเนื้อเยื่อส่งกลับถึงมือ (force feedback)</text>
+        <!-- row 1: command -->
+        <rect class="bx" x="20" y="60" width="160" height="80" rx="10"/><text class="t" x="100" y="94" text-anchor="middle">มือศัลยแพทย์</text><text class="s" x="100" y="116" text-anchor="middle">ขยับนิ้วและข้อมือ</text>
+        <rect class="bx" x="210" y="60" width="160" height="80" rx="10"/><text class="t" x="290" y="94" text-anchor="middle">ตัวบังคับ (master)</text><text class="s" x="290" y="116" text-anchor="middle">เซนเซอร์อ่านตำแหน่งมือ</text>
+        <rect class="bx k" x="400" y="52" width="180" height="96" rx="10"/><text class="t" x="490" y="80" text-anchor="middle">คอมพิวเตอร์ควบคุม</text><text class="s" x="490" y="101" text-anchor="middle">ย่อการเคลื่อนไหว 3:1, 5:1</text><text class="s" x="490" y="119" text-anchor="middle">กรองอาการมือสั่น</text><text class="s" x="490" y="137" text-anchor="middle">ตรวจความปลอดภัย</text>
+        <rect class="bx" x="610" y="60" width="160" height="80" rx="10"/><text class="t" x="690" y="94" text-anchor="middle">มอเตอร์ในแขน</text><text class="s" x="690" y="116" text-anchor="middle">หมุนแผ่นรับแรงของเครื่องมือ</text>
+        <rect class="bx k" x="800" y="60" width="140" height="80" rx="10"/><text class="t" x="870" y="94" text-anchor="middle">EndoWrist</text><text class="s" x="870" y="116" text-anchor="middle">จับ ตัด เย็บ จี้</text>
+        <path class="ln a" d="M180 100H206" marker-end="url(#ara)"/><path class="ln a" d="M370 100H396" marker-end="url(#ara)"/><path class="ln a" d="M580 100H606" marker-end="url(#ara)"/><path class="ln a" d="M770 100H796" marker-end="url(#ara)"/>
+        <!-- link instrument to camera -->
+        <path class="ln" d="M870 140V226" marker-end="url(#ar)"/><text class="s" x="860" y="188" text-anchor="end">อยู่ในช่องท้องเดียวกัน</text>
+        <!-- row 2: vision -->
+        <rect class="bx" x="800" y="230" width="140" height="80" rx="10"/><text class="t" x="870" y="264" text-anchor="middle">กล้อง 3D</text><text class="s" x="870" y="286" text-anchor="middle">เลนส์คู่ + แสง</text>
+        <rect class="bx" x="610" y="230" width="160" height="80" rx="10"/><text class="t" x="690" y="264" text-anchor="middle">Vision cart</text><text class="s" x="690" y="286" text-anchor="middle">ประมวลภาพ, Firefly</text>
+        <rect class="bx" x="400" y="230" width="180" height="80" rx="10"/><text class="t" x="490" y="264" text-anchor="middle">จอ 3D ในคอนโซล</text><text class="s" x="490" y="286" text-anchor="middle">ภาพแยกตาซ้ายและขวา</text>
+        <rect class="bx" x="210" y="230" width="160" height="80" rx="10"/><text class="t" x="290" y="264" text-anchor="middle">ตาและสมอง</text><text class="s" x="290" y="286" text-anchor="middle">ตัดสินใจขยับต่อ</text>
+        <path class="ln" d="M800 270H774" marker-end="url(#ar)"/><path class="ln" d="M610 270H584" marker-end="url(#ar)"/><path class="ln" d="M400 270H374" marker-end="url(#ar)"/>
+        <path class="ln" d="M210 270H100V144" marker-end="url(#ar)"/>
+        <text class="s" x="20" y="345">เส้นสีเขียว = คำสั่งการเคลื่อนไหว · เส้นสีเทา = ภาพย้อนกลับ · เส้นประสีส้ม = แรงสัมผัส (เฉพาะ da Vinci 5)</text>
+      </svg>
+      <div class="legend">
+        <div><i>1</i><span><b>ศัลยแพทย์ควบคุมตลอดเวลา</b> ถ้าละศีรษะออกจากช่องมอง ระบบจะล็อกแขนไม่ให้ขยับ</span></div>
+        <div><i>2</i><span><b>คอมพิวเตอร์อยู่ตรงกลาง</b> มือกับเครื่องมือไม่ได้ต่อกันด้วยกลไก ทุกคำสั่งผ่านซอฟต์แวร์ จึงย่อการเคลื่อนไหวและกรองการสั่นได้</span></div>
+        <div><i>3</i><span><b>ภาพคือข้อมูลหลัก</b> รุ่นก่อน da Vinci 5 ไม่มีแรงสัมผัส ศัลยแพทย์ประเมินแรงจากการที่เนื้อเยื่อยุบหรือตึงในภาพ</span></div>
+      </div>
+    </div>
+
+    <div class="diagram" role="tabpanel" id="d-wrist" aria-labelledby="t-wrist" hidden>
+      <svg viewBox="0 0 960 300" role="img" aria-label="เครื่องมือ EndoWrist แยกเป็นห้าส่วน">
+        <!-- 1 housing -->
+        <rect class="metal" x="30" y="92" width="190" height="116" rx="14" style="fill:#D9DFDD"/>
+        <g class="disc">
+          <circle class="dark" cx="78" cy="126" r="18"/><rect x="66" y="124" width="24" height="4" fill="#AEB8B6"/>
+          <circle class="dark" cx="140" cy="126" r="18"/><rect x="138" y="114" width="4" height="24" fill="#AEB8B6"/>
+          <circle class="dark" cx="78" cy="174" r="18"/><rect x="76" y="162" width="4" height="24" fill="#AEB8B6"/>
+          <circle class="dark" cx="140" cy="174" r="18"/><rect x="128" y="172" width="24" height="4" fill="#AEB8B6"/>
+        </g>
+        <circle cx="190" cy="150" r="12" class="metal"/>
+        <!-- 2 shaft -->
+        <path class="ln" d="M220 150H244" style="stroke-dasharray:3 4"/>
+        <rect class="metal" x="246" y="139" width="452" height="22" rx="4"/>
+        <!-- 3 cables inside shaft -->
+        <path d="M258 145H690M258 150H690M258 155H690" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="10 6"/>
+        <!-- 4 wrist -->
+        <path class="ln" d="M698 150H712" style="stroke-dasharray:3 4"/>
+        <rect class="metal" x="714" y="141" width="56" height="18" rx="3"/>
+        <circle class="metal" cx="726" cy="150" r="13"/><circle class="metal" cx="758" cy="150" r="13"/>
+        <circle cx="726" cy="150" r="4" class="dark"/><circle cx="758" cy="150" r="4" class="dark"/>
+        <!-- 5 jaws -->
+        <path class="ln" d="M771 150H790" style="stroke-dasharray:3 4"/>
+        <path class="metal" d="M792 146 L918 108 L924 116 L800 152Z"/>
+        <path class="metal" d="M792 154 L918 192 L924 184 L800 148Z"/>
+        <circle class="dark" cx="796" cy="150" r="5"/>
+        <!-- callouts -->
+        <g><path class="ln" d="M125 92V58"/><circle class="num" cx="125" cy="46" r="13"/><text class="numt" x="125" y="50" text-anchor="middle">1</text></g>
+        <g><path class="ln" d="M470 139V58"/><circle class="num" cx="470" cy="46" r="13"/><text class="numt" x="470" y="50" text-anchor="middle">2</text></g>
+        <g><path class="ln" d="M560 155V242"/><circle class="num" cx="560" cy="254" r="13"/><text class="numt" x="560" y="258" text-anchor="middle">3</text></g>
+        <g><path class="ln" d="M742 141V58"/><circle class="num" cx="742" cy="46" r="13"/><text class="numt" x="742" y="50" text-anchor="middle">4</text></g>
+        <g><path class="ln" d="M880 184V242"/><circle class="num" cx="880" cy="254" r="13"/><text class="numt" x="880" y="258" text-anchor="middle">5</text></g>
+        <text class="s" x="30" y="236">ด้านที่ต่อกับแขนหุ่นยนต์</text>
+        <text class="s" x="930" y="88" text-anchor="end">ปลายที่อยู่ในตัวผู้ป่วย</text>
+      </svg>
+      <div class="legend">
+        <div><i>1</i><span><b>ตัวเรือนและแผ่นรับแรง 4 แผ่น</b> เสียบเข้ากับแขนผ่านอะแดปเตอร์ปลอดเชื้อ มอเตอร์ในแขนหมุนแผ่นเหล่านี้ และมีชิปบอกระบบว่าเป็นเครื่องมือชนิดไหนและใช้ไปแล้วกี่ครั้ง</span></div>
+        <div><i>2</i><span><b>แกนยาว</b> เส้นผ่านศูนย์กลางราว 8 มม. (บางชนิด 5 มม.) สอดผ่านท่อ (cannula) ที่แผลขนาดเล็ก</span></div>
+        <div><i>3</i><span><b>สายเคเบิลโลหะ</b> วิ่งจากแผ่นรับแรงผ่านรอกถึงปลาย การดึงสายแต่ละคู่ทำให้ข้อมือและปากคีบขยับ ทำงานคล้ายเส้นเอ็นของนิ้ว</span></div>
+        <div><i>4</i><span><b>ข้อมือ (wrist)</b> ข้อต่อสองแกนที่ปลาย ทำให้เครื่องมือหักงอในช่องท้องได้ใกล้เคียงข้อมือคน ซึ่งเครื่องมือส่องกล้องแบบตรงทำไม่ได้</span></div>
+        <div><i>5</i><span><b>ปลายเครื่องมือ</b> เปลี่ยนได้หลายแบบ เช่น คีมจับเข็ม กรรไกร คีมจี้ไฟฟ้า ที่เย็บตัด (stapler) และเครื่องมือปิดหลอดเลือด แต่ละชิ้นใช้ซ้ำได้จำนวนครั้งจำกัด</span></div>
+      </div>
+    </div>
+
+    <div class="diagram" role="tabpanel" id="d-rcm" aria-labelledby="t-rcm" hidden>
+      <svg viewBox="0 0 960 300" role="img" aria-label="เครื่องมือหมุนรอบจุดคงที่ที่ผนังหน้าท้อง">
+        <text class="s" x="30" y="40">นอกตัวผู้ป่วย (แขนหุ่นยนต์)</text>
+        <text class="s" x="30" y="270">ในช่องท้อง</text>
+        <path class="wall" d="M20 140 Q480 120 940 140 V164 Q480 144 20 164Z"/>
+        <text class="s" x="40" y="132" style="fill:var(--accent2)">ผนังหน้าท้อง</text>
+        <path class="ln" d="M380 40 L580 260" style="opacity:.45"/>
+        <path class="ln" d="M580 40 L380 260" style="opacity:.45"/>
+        <path class="ln a" d="M480 30 L480 270" style="stroke-width:3"/>
+        <circle cx="480" cy="146" r="9" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+        <circle cx="480" cy="146" r="3" fill="var(--accent)"/>
+        <path class="ln o" d="M392 52 Q480 22 568 52" marker-end="url(#aro)"/>
+        <path class="ln o" d="M568 248 Q480 278 392 248" marker-end="url(#aro)"/>
+        <text class="t" x="600" y="50">จุดหมุนคงที่ (Remote Center of Motion)</text>
+        <text class="s" x="600" y="74">แขนออกแบบเป็นกลไกสี่เหลี่ยมด้านขนาน</text>
+        <text class="s" x="600" y="94">ให้เครื่องมือหมุนรอบจุดที่แผลพอดี แผลจึงไม่ถูกงัดหรือฉีก</text>
+        <text class="s" x="600" y="206">ด้านบนขยับไปขวา ปลายในช่องท้องขยับไปซ้าย</text>
+        <text class="s" x="600" y="226">ส่องกล้องแบบเดิมศัลยแพทย์ต้องคิดกลับทิศเอง</text>
+        <text class="s" x="600" y="246">หุ่นยนต์ให้คอมพิวเตอร์กลับทิศให้ จึงขยับได้เป็นธรรมชาติ</text>
+      </svg>
+      <div class="legend">
+        <div><i>1</i><span><b>Fulcrum effect</b> ปัญหาหลักของการผ่าตัดส่องกล้องรุ่นแรก ผนังหน้าท้องทำตัวเป็นจุดหมุนแบบไม้กระดก มือกับปลายเครื่องมือจึงขยับสวนทางกัน</span></div>
+        <div><i>2</i><span><b>หุ่นยนต์แก้ด้วยกลไกบวกซอฟต์แวร์</b> กลไกล็อกจุดหมุนไว้ที่แผล ส่วนซอฟต์แวร์แปลงทิศให้ปลายเครื่องมือขยับตามมือ</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- origin -->
+  <section id="s-origin" aria-labelledby="h-origin">
+    <div class="sec-head">
+      <span class="eyebrow">03 · จุดเริ่มต้น</span>
+      <h2 id="h-origin">ทำไมถึงต้องสร้างเครื่องมือผ่าตัดแม่นยำสูง</h2>
+      <p>เกิดจากสามเรื่องมาบรรจบกันในช่วงปลายทศวรรษ 1980 ถึงกลาง 1990</p>
+    </div>
+    <div class="why">
+      <div class="card"><span class="tag">ปัญหาทางคลินิก</span><h3>การผ่าตัดส่องกล้องรุ่นแรกยากมาก</h3>
+        <p>การผ่าตัดผ่านแผลเล็กแพร่หลายหลังปี 1987 ผู้ป่วยฟื้นตัวเร็วกว่าผ่าเปิด แต่ศัลยแพทย์ต้องดูภาพ 2 มิติบนจอ ใช้เครื่องมือแท่งตรงที่ไม่มีข้อมือ มือกับปลายเครื่องมือขยับสวนทางกัน อาการมือสั่นถูกขยาย และยืนผิดท่านาน งานละเอียดอย่างการเย็บในที่แคบจึงทำได้ยาก</p></div>
+      <div class="card"><span class="tag">ทุนวิจัยกองทัพ</span><h3>ผ่าตัดทหารในสนามรบจากระยะไกล</h3>
+        <p>สถาบันวิจัย SRI International ในแคลิฟอร์เนีย (ทีมของ Philip Green) พัฒนาระบบ “telepresence surgery” ให้ศัลยแพทย์รู้สึกเหมือนมืออยู่ในตัวผู้ป่วย โดยได้ทุนจาก DARPA และกองทัพสหรัฐฯ เป้าหมายคือให้ศัลยแพทย์ในที่ปลอดภัยผ่าตัดทหารบาดเจ็บแนวหน้าผ่านหุ่นยนต์</p></div>
+      <div class="card"><span class="tag">นำมาทำธุรกิจ</span><h3>จากสนามรบสู่ห้องผ่าตัดทั่วไป</h3>
+        <p>ปี 1995 Frederic Moll (แพทย์), Robert Younge และ John Freund ซื้อสิทธิ์เทคโนโลยีจาก SRI ตั้งบริษัท Intuitive Surgical และรวมสิทธิบัตรจาก MIT และ IBM เปลี่ยนเป้าเป็นศัลยแพทย์นั่งในห้องเดียวกับผู้ป่วย เพราะการผ่าตัดทางไกลติดปัญหาสัญญาณหน่วงและกฎหมาย</p></div>
+    </div>
+    <p class="note" style="margin-top:16px">ชื่อ “da Vinci” ตั้งตาม Leonardo da Vinci ผู้ศึกษากายวิภาคอย่างละเอียด และเคยออกแบบหุ่นกลรูปอัศวินในราวปี 1495</p>
+  </section>
+
+  <!-- models -->
+  <section id="s-models" aria-labelledby="h-models">
+    <div class="sec-head">
+      <span class="eyebrow">04 · ทุกรุ่นตั้งแต่อดีต</span>
+      <h2 id="h-models">da Vinci มี 7 รุ่นหลัก</h2>
+      <p>นับเฉพาะระบบผ่าตัดหลายแขนตระกูล da Vinci ไม่รวม Ion ซึ่งเป็นหุ่นยนต์ส่องหลอดลมของบริษัทเดียวกัน</p>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>รุ่น</th><th>ปี</th><th>แขน</th><th>สิ่งที่เปลี่ยน</th></tr></thead>
+      <tbody>
+        <tr><td><b>da Vinci</b> (Standard)</td><td>1999 (FDA 2000)</td><td>3 → 4</td><td>รุ่นแรก ภาพ 3 มิติจากกล้องเลนส์คู่ และเครื่องมือ EndoWrist เพิ่มแขนที่ 4 เป็นตัวเลือกในปี 2003</td></tr>
+        <tr><td><b>da Vinci S</b></td><td>2006</td><td>4</td><td>แขนบางลง ติดตั้งเร็วขึ้น เพิ่มภาพความละเอียดสูง (HD) และจอสัมผัสสำหรับทีม</td></tr>
+        <tr><td><b>da Vinci Si</b></td><td>2009</td><td>4</td><td>คอนโซลคู่ ให้อาจารย์กับแพทย์ฝึกหัดผ่าตัดร่วมกัน รองรับกล้องเรืองแสง Firefly และเครื่องมือแบบแผลเดียว</td></tr>
+        <tr><td><b>da Vinci Xi</b></td><td>2014</td><td>4</td><td>แขนห้อยจากบูมที่หมุนได้ ใส่กล้องแขนไหนก็ได้ ผ่าตัดได้หลายบริเวณในช่องท้องโดยไม่ต้องย้ายเครื่อง ขยับเตียงพร้อมแขนได้ (integrated table motion)</td></tr>
+        <tr><td><b>da Vinci X</b></td><td>2017</td><td>4</td><td>ใช้แขนและเครื่องมือแบบ Xi บนฐานแบบเดิม ราคาต่ำกว่า สำหรับโรงพยาบาลที่งบจำกัด</td></tr>
+        <tr><td><b>da Vinci SP</b></td><td>2018</td><td>1 แขน (3 เครื่องมือ + กล้อง)</td><td>แผลเดียวขนาดราว 2.5 ซม. ปล่อยเครื่องมือข้อต่องอได้ 3 ชิ้นและกล้องงอได้ออกจากท่อเดียว เหมาะกับที่แคบ เช่นผ่าตัดผ่านช่องปาก</td></tr>
+        <tr><td><b>da Vinci 5</b></td><td>2024 (FDA มี.ค. 2024)</td><td>4</td><td>เครื่องมือส่งแรงสัมผัสกลับถึงมือ (force feedback) พลังประมวลผลมากกว่า Xi มาก ระบบเป่าลมช่องท้องในตัว และเก็บข้อมูลการผ่าตัดให้ทีมทบทวน</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3 style="margin:32px 0 16px">เส้นเวลา: ก่อนและหลัง da Vinci</h3>
+    <div class="timeline">
+      <div class="era">ยุคบุกเบิก</div>
+      <div class="ev"><span class="yr">1985</span><h4>PUMA 560</h4><p>หุ่นยนต์แขนอุตสาหกรรมถูกนำมาจับเข็มเจาะชิ้นเนื้อสมองตามพิกัดจากภาพ CT ถือเป็นการใช้หุ่นยนต์ในการผ่าตัดครั้งแรก ๆ</p></div>
+      <div class="ev"><span class="yr">ปลาย 1980s</span><h4>PROBOT</h4><p>Imperial College London พัฒนาหุ่นยนต์ตัดต่อมลูกหมากผ่านท่อปัสสาวะ</p></div>
+      <div class="ev"><span class="yr">1992</span><h4>ROBODOC</h4><p>หุ่นยนต์กัดโพรงกระดูกต้นขาให้พอดีกับข้อสะโพกเทียม</p></div>
+      <div class="ev"><span class="yr">ต้น 1990s</span><h4>SRI Telepresence Surgery</h4><p>ต้นแบบระบบผ่าตัดทางไกลที่ได้ทุนกองทัพ เป็นรากฐานทางเทคนิคของ da Vinci</p></div>
+      <div class="ev"><span class="yr">1994</span><h4>AESOP (Computer Motion)</h4><p>แขนหุ่นยนต์ถือกล้องส่องช่องท้อง ได้รับอนุมัติจาก FDA เป็นหุ่นยนต์ผ่าตัดตัวแรก ๆ</p></div>
+      <div class="era">Intuitive Surgical</div>
+      <div class="ev dv"><span class="yr">1995</span><h4>ก่อตั้ง Intuitive Surgical</h4><p>ต้นแบบแรกมีชื่อเล่นว่า “Lenny” ตามด้วย “Mona”</p></div>
+      <div class="ev dv"><span class="yr">1997</span><h4>ผ่าตัดในคนครั้งแรก</h4><p>ต้นแบบ Mona ใช้ผ่าตัดถุงน้ำดีที่ประเทศเบลเยียม</p></div>
+      <div class="ev"><span class="yr">1998</span><h4>ZEUS (Computer Motion)</h4><p>คู่แข่งสำคัญ ปี 2001 ใช้ผ่าตัดถุงน้ำดีข้ามมหาสมุทร ศัลยแพทย์อยู่นิวยอร์ก ผู้ป่วยอยู่สตราสบูร์ก (Lindbergh operation)</p></div>
+      <div class="ev dv"><span class="yr">1999–2000</span><h4>da Vinci รุ่นแรก</h4><p>วางขายในยุโรปปี 1999 FDA อนุมัติสำหรับการผ่าตัดส่องกล้องช่องท้องทั่วไปเดือนกรกฎาคม 2000 และต่อมาสำหรับผ่าตัดต่อมลูกหมาก (2001) และนรีเวช (2005)</p></div>
+      <div class="ev dv"><span class="yr">2003</span><h4>รวมกิจการกับ Computer Motion</h4><p>ยุติคดีสิทธิบัตรระหว่างกัน ZEUS ถูกยุติการผลิต da Vinci กลายเป็นระบบหลักของตลาดอยู่ราวสองทศวรรษ</p></div>
+      <div class="ev dv"><span class="yr">2006–2018</span><h4>S, Si, Xi, X, SP</h4><p>พัฒนาภาพ HD คอนโซลคู่ แขนแบบบูม และระบบแผลเดียว</p></div>
+      <div class="ev dv"><span class="yr">2019</span><h4>Ion</h4><p>หุ่นยนต์สายสวนยืดหยุ่นสำหรับเก็บชิ้นเนื้อก้อนในปอดผ่านหลอดลม</p></div>
+      <div class="ev dv"><span class="yr">2024</span><h4>da Vinci 5</h4><p>รุ่นแรกที่ส่งแรงสัมผัสกลับถึงมือศัลยแพทย์</p></div>
+      <div class="ev"><span class="yr">2020s</span><h4>คู่แข่งยุคใหม่</h4><p>Medtronic Hugo, CMR Versius, Medicaroid hinotori (ญี่ปุ่น), MicroPort Toumai (จีน) และ J&amp;J Ottava ทำให้ตลาดแข่งขันด้านราคามากขึ้น</p></div>
+    </div>
+  </section>
+
+  <!-- cases -->
+  <section id="s-cases" aria-labelledby="h-cases">
+    <div class="sec-head">
+      <span class="eyebrow">05 · ใช้กับเคสอะไร</span>
+      <h2 id="h-cases">ได้ประโยชน์มากที่สุดเมื่อต้องทำงานละเอียดในที่แคบและลึก</h2>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>สาขา</th><th>ตัวอย่างการผ่าตัด</th><th>ทำไมหุ่นยนต์ช่วยได้</th></tr></thead>
+      <tbody>
+        <tr><td>ระบบทางเดินปัสสาวะ</td><td>ตัดต่อมลูกหมากแบบถอนราก, ตัดไตบางส่วน, ตัดกระเพาะปัสสาวะ</td><td>อุ้งเชิงกรานแคบและลึก ต้องเย็บต่อท่อปัสสาวะละเอียดและเลี่ยงเส้นประสาทที่คุมการกลั้นปัสสาวะ เป็นเคสที่ทำให้ da Vinci แพร่หลาย</td></tr>
+        <tr><td>นรีเวช</td><td>ตัดมดลูก, ตัดเนื้องอกมดลูก, เยื่อบุโพรงมดลูกเจริญผิดที่, มะเร็งเยื่อบุโพรงมดลูก</td><td>เข้าถึงอุ้งเชิงกรานได้ดี เสียเลือดน้อยกว่าผ่าเปิด</td></tr>
+        <tr><td>ศัลยกรรมทั่วไป</td><td>ไส้เลื่อน, ถุงน้ำดี, ลำไส้ใหญ่และทวารหนัก, กระเพาะ, ตับ, ตับอ่อน</td><td>ทวารหนักส่วนล่างอยู่ลึกในเชิงกราน การผ่าตัดตับอ่อนต้องเย็บต่อหลายจุด</td></tr>
+        <tr><td>ลดน้ำหนัก</td><td>Gastric bypass, Sleeve gastrectomy</td><td>ผนังหน้าท้องหนา หุ่นยนต์รับแรงแทนแขนศัลยแพทย์</td></tr>
+        <tr><td>ทรวงอก</td><td>ตัดกลีบปอด, เนื้องอกต่อมไทมัส</td><td>ทำงานระหว่างซี่โครงโดยไม่ต้องถ่างซี่โครงกว้าง</td></tr>
+        <tr><td>หัวใจ</td><td>ซ่อมลิ้นหัวใจไมทรัล</td><td>เข้าทางแผลเล็กข้างทรวงอกแทนการเลื่อยกระดูกหน้าอก (ทำในศูนย์เฉพาะทาง)</td></tr>
+        <tr><td>หู คอ จมูก</td><td>ผ่าตัดผ่านช่องปาก (TORS) สำหรับเนื้องอกคอหอยและโคนลิ้น</td><td>ไม่ต้องผ่าขากรรไกร รุ่น SP เหมาะเพราะเข้าทางเดียว</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="pro-con" style="margin-top:20px">
+      <div class="card"><h3>ข้อดีที่มีหลักฐาน</h3><ul>
+        <li>เทียบกับผ่าเปิด: แผลเล็ก เสียเลือดน้อย นอนโรงพยาบาลสั้นลง</li>
+        <li>ศัลยแพทย์ทำงานละเอียดในที่แคบได้ง่ายขึ้น และเมื่อยน้อยลง</li>
+        <li>ทำให้การผ่าตัดซับซ้อนบางอย่างเปลี่ยนจากผ่าเปิดมาเป็นแผลเล็กได้</li>
+      </ul></div>
+      <div class="card"><h3>ข้อจำกัดที่ควรรู้</h3><ul>
+        <li>ราคาเครื่องหลายสิบล้านบาท บวกค่าบำรุงรักษารายปีและเครื่องมือที่ใช้ซ้ำได้จำกัด ค่าผ่าตัดจึงสูงกว่า</li>
+        <li>หลายหัตถการ เช่น ถุงน้ำดีหรือไส้เลื่อนทั่วไป ผลลัพธ์ไม่ต่างจากส่องกล้องแบบเดิมอย่างชัดเจน</li>
+        <li>มะเร็งปากมดลูกระยะต้น: งานวิจัย LACC (2018) พบว่าการผ่าตัดแผลเล็ก (รวมหุ่นยนต์) มีอัตรารอดชีวิตต่ำกว่าผ่าเปิด แนวทางปัจจุบันจึงแนะนำผ่าเปิด</li>
+        <li>ผลลัพธ์ขึ้นกับประสบการณ์ของศัลยแพทย์และจำนวนเคสของโรงพยาบาลมากกว่าตัวเครื่อง</li>
+      </ul></div>
+    </div>
+    <p class="note" style="margin-top:16px">ในประเทศไทยมี da Vinci ใช้ในโรงเรียนแพทย์และโรงพยาบาลเอกชนหลายแห่ง ค่าใช้จ่ายส่วนต่างอาจไม่อยู่ในสิทธิบัตรทอง ประกันสังคม หรือสวัสดิการข้าราชการทั้งหมด ผู้ป่วยควรถามโรงพยาบาลเรื่องค่าใช้จ่ายและจำนวนเคสของทีมก่อนตัดสินใจ</p>
+  </section>
+
+  <!-- who -->
+  <section id="s-who" aria-labelledby="h-who">
+    <div class="sec-head">
+      <span class="eyebrow">06 · ผู้พัฒนา</span>
+      <h2 id="h-who">Intuitive Surgical, Inc.</h2>
+    </div>
+    <div class="tbl-wrap"><table><tbody>
+      <tr><th>สำนักงานใหญ่</th><td>ซันนีเวล รัฐแคลิฟอร์เนีย สหรัฐอเมริกา</td></tr>
+      <tr><th>ก่อตั้ง</th><td>1995 โดย Frederic Moll, Robert Younge และ John Freund</td></tr>
+      <tr><th>ผู้บริหาร</th><td>Lonnie Smith (CEO ช่วงขยายตัว 1997–2010), Gary Guthart (CEO 2010–2025), Dave Rosa (CEO ตั้งแต่กลางปี 2025)</td></tr>
+      <tr><th>ตลาดหุ้น</th><td>NASDAQ: ISRG เข้าตลาดปี 2000</td></tr>
+      <tr><th>รากเทคโนโลยี</th><td>SRI International (ทุน DARPA และกองทัพสหรัฐฯ), สิทธิบัตรจาก MIT และ IBM, สิทธิบัตรของ Computer Motion หลังรวมกิจการ 2003</td></tr>
+      <tr><th>ผลิตภัณฑ์อื่น</th><td>Ion (ส่องหลอดลม), เครื่องมือ EndoWrist และ stapler, ระบบจำลองฝึกผ่าตัด (SimNow)</td></tr>
+      <tr><th>โมเดลธุรกิจ</th><td>รายได้ส่วนใหญ่มาจากเครื่องมือและอุปกรณ์สิ้นเปลืองที่ใช้ทุกเคส และสัญญาบริการ ไม่ใช่การขายเครื่อง</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <footer>
+    <p>เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำทางการแพทย์ da Vinci, EndoWrist, Firefly และ Ion เป็นเครื่องหมายการค้าของ Intuitive Surgical หน้านี้ไม่มีส่วนเกี่ยวข้องกับบริษัท โมเดลและภาพทั้งหมดวาดขึ้นใหม่แบบย่อเพื่ออธิบายหลักการ</p>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+/* ---------- 2D tabs ---------- */
+(function(){
+  var tabs=[].slice.call(document.querySelectorAll('[role=tab]'));
+  tabs.forEach(function(t){
+    t.addEventListener('click',function(){
+      tabs.forEach(function(x){
+        var on=x===t; x.setAttribute('aria-selected',on);
+        document.getElementById(x.getAttribute('aria-controls')).hidden=!on;
+      });
+    });
+  });
+})();
+
+/* ---------- Part descriptions ---------- */
+var PARTS={
+  viewer:{grp:'คอนโซลศัลยแพทย์',name:'ช่องมองภาพ 3 มิติ',role:'จอแยกภาพตาซ้ายและขวา ให้ภาพลึกเหมือนมองด้วยตาเปล่า ขยายได้ราว 10 เท่า',list:['เซนเซอร์ตรวจว่าศัลยแพทย์ยังมองอยู่ ถ้าละสายตา แขนจะหยุดทันที','แสดงข้อมูลเครื่องมือ ภาพ Firefly และภาพ CT/MRI ซ้อนได้ (TilePro)']},
+  masters:{grp:'คอนโซลศัลยแพทย์',name:'ตัวบังคับมือ (master controllers)',role:'ศัลยแพทย์สอดนิ้วโป้งและนิ้วชี้เข้าที่จับ การขยับมือถูกแปลงเป็นการขยับเครื่องมือ',list:['ย่อการเคลื่อนไหว 3:1 หรือ 5:1 เพื่องานละเอียด','กรองการสั่นความถี่สูงของมือออก','ปุ่ม clutch ให้จัดมือใหม่โดยเครื่องมือไม่ขยับ']},
+  pedals:{grp:'คอนโซลศัลยแพทย์',name:'แป้นเหยียบ',role:'สั่งงานที่ไม่ใช้มือ',list:['ขยับกล้อง','สลับแขนที่ควบคุม (มี 4 แขน แต่มือมี 2 ข้าง)','ปล่อยพลังงานจี้ตัดแบบ monopolar และ bipolar']},
+  consolebody:{grp:'คอนโซลศัลยแพทย์',name:'ตัวคอนโซลและที่วางแขน',role:'ศัลยแพทย์นั่งผ่าตัดห่างจากเตียงในห้องเดียวกัน ที่วางแขนช่วยลดความเมื่อยในเคสยาว',list:['รุ่น Si ขึ้นไปต่อคอนโซลที่สองได้ ใช้สอนและผ่าตัดร่วม','da Vinci 5 ปรับท่านั่งและจอได้มากขึ้น']},
+  boom:{grp:'รถแขนหุ่นยนต์ข้างเตียง',name:'บูมและแท่นหมุน',role:'คานยื่นเหนือผู้ป่วย แขวนแขนทั้ง 4 หมุนได้รอบตัว จึงเข้าทางไหนของร่างกายก็ได้',list:['มีเลเซอร์ชี้ตำแหน่งช่วยจัดเครื่องให้ตรงแผล (Xi)','ออกแบบให้แขนไม่ชนกันเมื่อทำงานในหลายบริเวณ']},
+  arms:{grp:'รถแขนหุ่นยนต์ข้างเตียง',name:'แขนหุ่นยนต์ 4 แขน',role:'แต่ละแขนมีมอเตอร์และเซนเซอร์ตำแหน่ง กลไกล็อกจุดหมุนไว้ที่แผล (remote center of motion)',list:['3 แขนถือเครื่องมือ 1 แขนถือกล้อง (Xi ใส่กล้องแขนไหนก็ได้)','หุ้มด้วยผ้าคลุมปลอดเชื้อ (drape) ทุกเคส','มีอะแดปเตอร์ปลอดเชื้อคั่นระหว่างแขนกับเครื่องมือ']},
+  instrument:{grp:'เครื่องมือ',name:'เครื่องมือ EndoWrist',role:'แกนยาวราว 8 มม. ปลายมีข้อมือหมุนได้ ขับด้วยสายเคเบิลจากมอเตอร์ในแขน',list:['7 องศาอิสระรวมการบีบปากคีบ','มีหลายแบบ: คีมจับเข็ม กรรไกร คีมจี้ stapler','ใช้ซ้ำได้จำนวนครั้งจำกัด ชิปในตัวนับจำนวนครั้ง']},
+  endoscope:{grp:'เครื่องมือ',name:'กล้อง 3D (endoscope)',role:'กล้องเลนส์คู่ขนาดราว 8 มม. ส่งภาพสองมุมสำหรับตาสองข้าง',list:['แสงส่องผ่านใยแก้วจาก vision cart','Firefly: ฉีดสี ICG แล้วส่องแสงใกล้อินฟราเรด เห็นหลอดเลือดและท่อน้ำดีเรืองแสง']},
+  pcbase:{grp:'รถแขนหุ่นยนต์ข้างเตียง',name:'ฐานและเสารถแขนหุ่นยนต์',role:'ฐานหนักเพื่อความมั่นคง ขับเคลื่อนด้วยมอเตอร์ช่วยเข็นเข้าหาเตียง',list:['ล็อกล้อเมื่อเข้าที่','เสาปรับความสูงบูมให้เหมาะกับท่าผู้ป่วย']},
+  vision:{grp:'รถประมวลภาพ',name:'Vision cart',role:'สมองของระบบภาพและพลังงาน วางให้ทีมข้างเตียงเห็นจอเดียวกับศัลยแพทย์',list:['ประมวลภาพ 3D และแหล่งกำเนิดแสง','เครื่องกำเนิดพลังงานไฟฟ้าสำหรับจี้ตัด','จอสัมผัสให้พยาบาลและผู้ช่วยดู','da Vinci 5 รวมเครื่องเป่าลมช่องท้องไว้ในตัว']},
+  table:{grp:'ห้องผ่าตัด',name:'เตียงผ่าตัดและผู้ป่วย',role:'ผู้ป่วยถูกเป่าลม CO₂ เข้าช่องท้องให้มีที่ทำงาน เครื่องมือเข้าทางแผลเล็ก 8–12 มม. หลายจุด',list:['Xi ใช้เตียงที่สื่อสารกับหุ่นยนต์ ปรับเอียงเตียงได้โดยไม่ต้องถอดแขน','ยังต้องมีศัลยแพทย์ผู้ช่วยข้างเตียงเปลี่ยนเครื่องมือและช่วยดูด']}
+};
+var ORDER=['viewer','masters','pedals','consolebody','boom','arms','instrument','endoscope','pcbase','vision','table'];
+
+function showInfo(id){
+  var p=PARTS[id];
+  document.getElementById('p-group').textContent=p?p.grp:'ชิ้นส่วน';
+  document.getElementById('p-name').textContent=p?p.name:'เลือกชิ้นส่วน';
+  document.getElementById('p-role').textContent=p?p.role:'แตะชิ้นส่วนในโมเดล หรือเลือกจากรายการด้านล่าง';
+  var ul=document.getElementById('p-list'); ul.innerHTML='';
+  if(p) p.list.forEach(function(s){var li=document.createElement('li');li.textContent=s;ul.appendChild(li);});
+  document.querySelectorAll('#chips button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.id===id)});
+}
+(function(){
+  var c=document.getElementById('chips');
+  ORDER.forEach(function(id){
+    var b=document.createElement('button');b.type='button';b.dataset.id=id;b.textContent=PARTS[id].name;b.setAttribute('aria-pressed','false');
+    c.appendChild(b);
+  });
+})();
+
+/* ---------- 3D scene ---------- */
+(function(){
+  var stage=document.getElementById('stage');
+  var select=function(id){showInfo(id);};
+  document.getElementById('chips').addEventListener('click',function(e){var b=e.target.closest('button');if(b) window.__dvSelect?window.__dvSelect(b.dataset.id):select(b.dataset.id);});
+  if(typeof THREE==='undefined'){fail();return;}
+  var renderer;
+  try{renderer=new THREE.WebGLRenderer({antialias:true});}catch(e){fail();return;}
+  function fail(){stage.querySelector('.ctrl').hidden=true;stage.querySelector('.hint').hidden=true;var d=document.createElement('div');d.className='fallback';d.textContent='เบราว์เซอร์นี้แสดงโมเดล 3D ไม่ได้ เลือกชิ้นส่วนจากรายการด้านข้างเพื่ออ่านรายละเอียดแทน';stage.appendChild(d);}
+
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  stage.insertBefore(renderer.domElement,stage.firstChild);
+  var scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x0F1A1F);
+  scene.fog=new THREE.Fog(0x0F1A1F,12,24);
+  var camera=new THREE.PerspectiveCamera(38,1,0.05,60);
+  var HOME={pos:new THREE.Vector3(3.6,3.9,6.3),tgt:new THREE.Vector3(0.1,1.0,-0.6)};
+  camera.position.copy(HOME.pos);
+  var controls=new THREE.OrbitControls(camera,renderer.domElement);
+  controls.target.copy(HOME.tgt);controls.enableDamping=true;controls.dampingFactor=0.08;
+  controls.maxPolarAngle=Math.PI*0.495;controls.minDistance=1.6;controls.maxDistance=13;controls.autoRotateSpeed=0.8;
+
+  scene.add(new THREE.HemisphereLight(0xffffff,0x223038,0.85));
+  var dl=new THREE.DirectionalLight(0xffffff,0.85);dl.position.set(4,8,5);scene.add(dl);
+  var dl2=new THREE.DirectionalLight(0x9fd8ff,0.3);dl2.position.set(-5,4,-4);scene.add(dl2);
+
+  var floor=new THREE.Mesh(new THREE.CircleGeometry(7,64),new THREE.MeshStandardMaterial({color:0x16252a,roughness:1}));
+  floor.rotation.x=-Math.PI/2;scene.add(floor);
+  var grid=new THREE.GridHelper(14,28,0x2b4048,0x1e3036);grid.position.y=0.002;scene.add(grid);
+
+  var C={white:0xE8ECEB,grey:0xB9C2C0,dark:0x3A4446,metal:0x9AA6A8,teal:0x3CC4A0,blue:0x5FA8EC,skin:0xC9A28A,drape:0x5E8FA8,screen:0x0c2b36};
+  var groups={},meshes=[];
+  function part(id,parent){var g=new THREE.Group();g.userData.part=id;g.userData.base=new THREE.Vector3();g.userData.off=new THREE.Vector3();(parent||scene).add(g);groups[id]=g;return g;}
+  function mat(c,o){o=o||{};return new THREE.MeshStandardMaterial({color:c,roughness:o.r!=null?o.r:0.45,metalness:o.m||0.05,emissive:o.e||0x000000});}
+  function add(g,geo,c,x,y,z,o){var m=new THREE.Mesh(geo,mat(c,o));m.position.set(x,y,z);g.add(m);if(g.userData.part){m.userData.part=g.userData.part;meshes.push(m);}return m;}
+  var UP=new THREE.Vector3(0,1,0);
+  function between(g,a,b,geoFn,c,o){
+    var d=new THREE.Vector3().subVectors(b,a),len=d.length();
+    var m=add(g,geoFn(len),c,(a.x+b.x)/2,(a.y+b.y)/2,(a.z+b.z)/2,o);
+    m.quaternion.setFromUnitVectors(UP,d.normalize());return m;
+  }
+  function box(w,dd){return function(l){return new THREE.BoxGeometry(w,l,dd);};}
+  function cyl(r){return function(l){return new THREE.CylinderGeometry(r,r,l,16);};}
+
+  /* Operating table + patient */
+  var table=part('table');
+  add(table,new THREE.BoxGeometry(0.5,0.08,0.7),C.dark,0,0.04,0);
+  add(table,new THREE.CylinderGeometry(0.12,0.16,0.78,20),C.grey,0,0.47,0);
+  add(table,new THREE.BoxGeometry(2.1,0.08,0.58),C.dark,0,0.9,0);
+  var body=add(table,new THREE.CylinderGeometry(0.17,0.17,1.3,24),C.drape,0.05,1.07,0,{r:0.9});body.rotation.z=Math.PI/2;
+  add(table,new THREE.SphereGeometry(0.17,20,16),C.drape,0.7,1.07,0,{r:0.9});
+  add(table,new THREE.SphereGeometry(0.17,20,16),C.drape,-0.6,1.07,0,{r:0.9});
+  add(table,new THREE.SphereGeometry(0.11,20,16),C.skin,-0.92,1.08,0);
+
+  /* Patient-side cart (Xi style) at z=-1.45 */
+  var cart=new THREE.Group();cart.position.set(0,0,-1.45);scene.add(cart);
+  var pc=part('pcbase',cart);
+  add(pc,new THREE.BoxGeometry(0.9,0.3,0.8),C.white,0,0.17,0);
+  [[-0.38,-0.32],[0.38,-0.32],[-0.38,0.32],[0.38,0.32]].forEach(function(w){var wh=add(pc,new THREE.CylinderGeometry(0.05,0.05,0.04,16),C.dark,w[0],0.05,w[1]);wh.rotation.z=Math.PI/2;});
+  add(pc,new THREE.CylinderGeometry(0.13,0.15,1.9,24),C.white,0,1.25,0);
+  add(pc,new THREE.BoxGeometry(0.34,0.5,0.06),C.screen,0,0.85,-0.17,{e:0x0a3a4a});
+  var boom=part('boom',cart);
+  add(boom,new THREE.BoxGeometry(0.22,0.18,1.25),C.white,0,2.26,0.55);
+  add(boom,new THREE.CylinderGeometry(0.16,0.16,0.12,24),C.grey,0,2.18,1.12);
+  add(boom,new THREE.BoxGeometry(1.36,0.1,0.22),C.white,0,2.1,1.12);
+  var arms=part('arms',cart),inst=part('instrument',cart),scope=part('endoscope',cart);
+  var T=new THREE.Vector3(0,0.98,1.45);
+  [-0.48,-0.16,0.16,0.48].forEach(function(x,i){
+    var H=new THREE.Vector3(x,2.05,1.12);
+    var P=new THREE.Vector3(x*0.55,1.24,1.42+(i%2?0.04:-0.04));
+    var d=new THREE.Vector3().subVectors(T,P).normalize();
+    var C0=P.clone().addScaledVector(d,-0.72), C1=P.clone().addScaledVector(d,-0.14);
+    var E=new THREE.Vector3(x*1.18,1.86,0.74);
+    add(arms,new THREE.SphereGeometry(0.075,16,12),C.grey,H.x,H.y,H.z);
+    between(arms,H,E,box(0.09,0.11),C.white);
+    add(arms,new THREE.SphereGeometry(0.07,16,12),C.grey,E.x,E.y,E.z);
+    between(arms,E,C0,box(0.08,0.1),C.white);
+    add(arms,new THREE.SphereGeometry(0.06,16,12),C.grey,C0.x,C0.y,C0.z);
+    between(arms,C0,C1,box(0.1,0.07),C.white);
+    between(arms,C1.clone().addScaledVector(d,0.02),P.clone().addScaledVector(d,0.03),cyl(0.018),C.metal,{m:0.6,r:0.3});
+    var isScope=(i===1);
+    var tip=T.clone().addScaledVector(d,isScope?-0.12:-0.03);
+    between(isScope?scope:inst,C0.clone().addScaledVector(d,0.05),tip,cyl(isScope?0.011:0.008),isScope?C.blue:C.metal,{m:0.6,r:0.3});
+    var hb=between(isScope?scope:inst,C0.clone().addScaledVector(d,-0.06),C0.clone().addScaledVector(d,0.07),box(0.11,0.09),isScope?C.blue:C.grey);
+    if(!isScope){var j=add(inst,new THREE.ConeGeometry(0.018,0.06,8),C.teal,tip.x,tip.y,tip.z);j.quaternion.setFromUnitVectors(UP,d);}
+  });
+
+  /* Surgeon console */
+  var con=new THREE.Group();con.position.set(2.5,0,-1.0);con.rotation.y=Math.PI*0.5;scene.add(con);
+  var cb=part('consolebody',con);
+  add(cb,new THREE.BoxGeometry(1.0,0.12,0.95),C.white,0,0.06,0);
+  add(cb,new THREE.BoxGeometry(1.0,1.05,0.5),C.white,0,0.64,-0.22);
+  add(cb,new THREE.BoxGeometry(1.04,0.07,0.2),C.grey,0,0.95,0.3);
+  add(cb,new THREE.BoxGeometry(0.06,0.4,0.42),C.white,-0.5,0.95,0.05);
+  add(cb,new THREE.BoxGeometry(0.06,0.4,0.42),C.white,0.5,0.95,0.05);
+  var vw=part('viewer',con);
+  add(vw,new THREE.BoxGeometry(0.82,0.34,0.5),C.white,0,1.36,0.02);
+  add(vw,new THREE.BoxGeometry(0.5,0.14,0.08),C.dark,0,1.36,0.29);
+  add(vw,new THREE.CylinderGeometry(0.035,0.035,0.05,16),C.screen,-0.08,1.36,0.33,{e:0x1f6f8a}).rotation.x=Math.PI/2;
+  add(vw,new THREE.CylinderGeometry(0.035,0.035,0.05,16),C.screen,0.08,1.36,0.33,{e:0x1f6f8a}).rotation.x=Math.PI/2;
+  var ms=part('masters',con);
+  [-0.22,0.22].forEach(function(x){
+    add(ms,new THREE.CylinderGeometry(0.015,0.015,0.2,10),C.metal,x,1.06,0.24,{m:0.6});
+    add(ms,new THREE.BoxGeometry(0.05,0.05,0.12),C.dark,x,1.15,0.3);
+    add(ms,new THREE.SphereGeometry(0.03,12,10),C.teal,x,1.15,0.37);
+  });
+  var pd=part('pedals',con);
+  add(pd,new THREE.BoxGeometry(0.8,0.05,0.3),C.dark,0,0.03,0.6);
+  [-0.27,-0.09,0.09,0.27].forEach(function(x,i){add(pd,new THREE.BoxGeometry(0.13,0.03,0.2),i<2?C.blue:0xF0A64B,x,0.075,0.6);});
+
+  /* Vision cart */
+  var vcRoot=new THREE.Group();vcRoot.position.set(-2.5,0,0.4);vcRoot.rotation.y=Math.PI*0.32;scene.add(vcRoot);
+  var vc=part('vision',vcRoot);
+  add(vc,new THREE.BoxGeometry(0.62,1.25,0.55),C.white,0,0.68,0);
+  [[-0.25,-0.22],[0.25,-0.22],[-0.25,0.22],[0.25,0.22]].forEach(function(w){add(vc,new THREE.SphereGeometry(0.045,10,8),C.dark,w[0],0.045,w[1]);});
+  for(var k=0;k<3;k++) add(vc,new THREE.BoxGeometry(0.5,0.12,0.02),C.dark,0,0.4+k*0.25,0.28);
+  add(vc,new THREE.CylinderGeometry(0.025,0.025,0.55,10),C.grey,0,1.55,0);
+  add(vc,new THREE.BoxGeometry(0.82,0.5,0.05),C.dark,0,1.9,0.02);
+  add(vc,new THREE.BoxGeometry(0.76,0.44,0.01),C.screen,0,1.9,0.05,{e:0x174b5c});
+
+  /* exploded offsets (local to each part's parent) */
+  var OFF={viewer:[0,0.45,0.1],masters:[0,0.2,0.45],pedals:[0,0,0.55],boom:[0,0.3,0],arms:[0,0.6,-0.1],instrument:[0,1.15,-0.25],endoscope:[0,1.45,-0.15],vision:[0,0,0],pcbase:[0,0,-0.25],table:[0,0,0],consolebody:[0,0,-0.15]};
+  Object.keys(OFF).forEach(function(id){groups[id].userData.off.fromArray(OFF[id]);});
+
+  /* interaction */
+  var ray=new THREE.Raycaster(),ptr=new THREE.Vector2(),down=null,selected=null,hovered=null;
+  var tgtGoal=null,explode=0,explodeGoal=0;
+  function setEmissive(id,hex){meshes.forEach(function(m){if(m.userData.part===id){if(!m.userData.e0)m.userData.e0=m.material.emissive.getHex();m.material.emissive.setHex(hex==null?m.userData.e0:hex);}});}
+  function selectPart(id){
+    if(selected) setEmissive(selected,null);
+    selected=id;
+    if(id){setEmissive(id,0x1d7a63);
+      var b=new THREE.Box3().setFromObject(groups[id]);tgtGoal=b.getCenter(new THREE.Vector3());}
+    showInfo(id);
+  }
+  window.__dvSelect=selectPart;
+  function pick(e){
+    var r=renderer.domElement.getBoundingClientRect();
+    ptr.x=((e.clientX-r.left)/r.width)*2-1;ptr.y=-((e.clientY-r.top)/r.height)*2+1;
+    ray.setFromCamera(ptr,camera);var h=ray.intersectObjects(meshes,false);return h.length?h[0].object.userData.part:null;
+  }
+  renderer.domElement.addEventListener('pointerdown',function(e){down=[e.clientX,e.clientY];});
+  renderer.domElement.addEventListener('pointerup',function(e){
+    if(!down)return;var dx=e.clientX-down[0],dy=e.clientY-down[1];down=null;
+    if(dx*dx+dy*dy<36){var id=pick(e);if(id)selectPart(id);}
+  });
+  renderer.domElement.addEventListener('pointermove',function(e){
+    if(e.pointerType!=='mouse')return;var id=pick(e);
+    if(id!==hovered){if(hovered&&hovered!==selected)setEmissive(hovered,null);hovered=id;if(id&&id!==selected)setEmissive(id,0x16323a);}
+    renderer.domElement.style.cursor=id?'pointer':'grab';
+  });
+
+  var bEx=document.getElementById('btn-explode'),bSp=document.getElementById('btn-spin');
+  bEx.addEventListener('click',function(){explodeGoal=explodeGoal?0:1;bEx.setAttribute('aria-pressed',!!explodeGoal);if(selected){tgtGoal=null;}});
+  bSp.addEventListener('click',function(){controls.autoRotate=!controls.autoRotate;bSp.setAttribute('aria-pressed',controls.autoRotate);});
+  document.getElementById('btn-reset').addEventListener('click',function(){camera.position.copy(HOME.pos);tgtGoal=HOME.tgt.clone();selectPart(null);});
+
+  function resize(){var w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=camera.aspect<0.8?60:camera.aspect<1.2?52:38;camera.updateProjectionMatrix();}
+  if(window.ResizeObserver)new ResizeObserver(resize).observe(stage);else window.addEventListener('resize',resize);
+  resize();
+
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var visible=true;
+  if(window.IntersectionObserver)new IntersectionObserver(function(es){visible=es[0].isIntersecting;}).observe(stage);
+  (function loop(){
+    requestAnimationFrame(loop);
+    if(!visible)return;
+    explode+= (explodeGoal-explode)*(reduce?1:0.08);
+    Object.keys(groups).forEach(function(id){var g=groups[id];g.position.copy(g.userData.base).addScaledVector(g.userData.off,explode);});
+    if(tgtGoal){controls.target.lerp(tgtGoal,reduce?1:0.08);if(controls.target.distanceTo(tgtGoal)<0.005)tgtGoal=null;}
+    controls.update();renderer.render(scene,camera);
+  })();
+})();
+</script>
+</body>
+</html>

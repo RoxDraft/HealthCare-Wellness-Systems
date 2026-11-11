@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Whoop เทียบ Apple Watch</title>
+<meta name="description" content="Whoop และ Apple Watch Ultra วัดข้อมูลสุขภาพอย่างไร และต่างจากเครื่องมือของแพทย์และแล็บอย่างไร">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<script src="../assets/theme.js"></script>
+<style>
+.three{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.three .card h3{display:flex;gap:8px;align-items:center}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.tiers{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.tier{border-radius:12px;padding:16px;border:1px solid var(--line);background:var(--surface)}
+.tier b{font-family:var(--display);display:block;margin-bottom:4px}
+.tier .lv{font-family:var(--mono);font-size:12px;color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav" aria-label="เส้นทาง">
+    <span class="crumbs"><a href="../index.html">หน้าหลัก</a> / <a href="index.html">เทคโนโลยีการแพทย์</a> / <span>Wearable</span></span>
+    <button class="theme-btn" type="button">☾ มืด</button>
+  </nav>
+
+  <header class="top">
+    <span class="eyebrow">Smart Device · Wearable</span>
+    <h1>Whoop เทียบ Apple Watch Ultra และเครื่องมือของแพทย์</h1>
+    <p class="lead">ทั้งสองใช้เซนเซอร์พื้นฐานเดียวกัน คือแสงที่ข้อมือ (PPG) กับเซนเซอร์จับการเคลื่อนไหว แต่ตั้งเป้าต่างกัน Whoop เน้นว่าร่างกายฟื้นตัวพร้อมแค่ไหน ส่วน Apple เน้นฟีเจอร์คัดกรองที่ผ่าน FDA ทั้งคู่เหมาะกับการดูแนวโน้มของตัวเอง แต่ใช้วินิจฉัยโรคไม่ได้</p>
+    <p class="note">ข้อมูลถึงกลางปี 2026 สถานะฟีเจอร์ในประเทศไทย เช่น ECG หรือการแจ้งเตือนความดัน ควรตรวจสอบกับผู้ผลิตอีกครั้ง</p>
+  </header>
+
+  <section aria-labelledby="s1">
+    <div class="sec-head"><span class="eyebrow">01 · วิธีวัด</span><h2 id="s1">สองอุปกรณ์วัดอะไร อย่างไร</h2></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th></th><th>Whoop (4.0 / 5.0 / MG)</th><th>Apple Watch Ultra (2 / 3)</th></tr></thead>
+      <tbody>
+        <tr><td>รูปแบบ</td><td>สายรัดไม่มีจอ ใส่ 24 ชม. เก็บข้อมูลต่อเนื่อง</td><td>นาฬิกามีจอ วัดเป็นช่วง ๆ เพื่อประหยัดแบต</td></tr>
+        <tr><td>HR / HRV</td><td>PPG ตลอดเวลา HRV (RMSSD) วัดช่วงหลับลึก</td><td>PPG, HRV (SDNN) วัดเป็นช่วง ๆ</td></tr>
+        <tr><td>SpO2, อุณหภูมิ, การหายใจ</td><td>วัดระหว่างหลับ ดูค่าที่เบี่ยงจาก baseline</td><td>มีเช่นกัน (SpO2 บางประเทศถูกจำกัดจากคดีสิทธิบัตร)</td></tr>
+        <tr><td>ECG</td><td>เฉพาะรุ่น MG (ผ่าน FDA)</td><td>ECG 1 lead และแจ้งเตือนจังหวะผิดปกติ / AFib History (ผ่าน FDA)</td></tr>
+        <tr><td>คะแนนของแบรนด์</td><td>Strain (0–21), Recovery (%), Whoop Age</td><td>Sleep Score, VO2max โดยประมาณ, Training Load</td></tr>
+        <tr><td>ฟีเจอร์คัดกรอง</td><td>BP Insights (ไม่ผ่าน FDA และเคยได้รับจดหมายเตือนจาก FDA ปี 2025)</td><td>แจ้งเตือนภาวะหยุดหายใจขณะหลับ และแจ้งเตือนความดันสูง (ผ่าน FDA)</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section aria-labelledby="s2">
+    <div class="sec-head"><span class="eyebrow">02 · เทียบมาตรฐาน</span><h2 id="s2">เทียบกับเครื่องมือที่แพทย์และแล็บใช้จริง</h2></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>สิ่งที่วัด</th><th>นาฬิกา / สายรัด</th><th>มาตรฐานทางการแพทย์</th><th>ช่องว่าง</th></tr></thead>
+      <tbody>
+        <tr><td>หัวใจ</td><td>PPG, ECG 1 lead</td><td>ECG 12 lead, Holter / patch 1–14 วัน</td><td>1 lead จับ AFib ได้ดี แต่จับกล้ามเนื้อหัวใจขาดเลือดหรือหัวใจวายไม่ได้</td></tr>
+        <tr><td>การนอน</td><td>คาดระยะหลับจากการขยับและชีพจร</td><td>Polysomnography (EEG, EOG, EMG, ลมหายใจ, SpO2)</td><td>แยกหลับ/ตื่นได้ดี แต่ระยะ deep/REM ตรงกับ PSG ระดับปานกลาง และวินิจฉัย sleep apnea เองไม่ได้</td></tr>
+        <tr><td>SpO2</td><td>แสงสะท้อนที่ข้อมือ</td><td>Pulse oximeter ปลายนิ้วตามมาตรฐาน ISO, ก๊าซในเลือดแดง (ABG)</td><td>คลาดเคลื่อนมากกว่า เพี้ยนได้จากการขยับ สีผิว หรือสวมหลวม</td></tr>
+        <tr><td>ความดัน</td><td>แนวโน้มเท่านั้น ไม่ให้ค่า mmHg</td><td>เครื่องวัดแบบ cuff ที่ผ่าน validation, ABPM 24 ชม.</td><td>ยังต้องใช้ cuff ยืนยัน</td></tr>
+        <tr><td>สมรรถภาพ</td><td>VO2max โดยประมาณ, Strain</td><td>CPET วัดก๊าซหายใจจริง</td><td>ค่าประมาณคลาดเคลื่อนราว ±10–15% หรือมากกว่า</td></tr>
+        <tr><td>เลือด / เมตาบอลิซึม</td><td>วัดไม่ได้ (Whoop Advanced Labs คือส่งเลือดไปแล็บจริง)</td><td>ผลเลือด: น้ำตาล, HbA1c, ไขมัน, ไต, ตับ, CGM</td><td>นาฬิกายังวัดค่าเลือดไม่ได้</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section aria-labelledby="s3">
+    <div class="sec-head"><span class="eyebrow">03 · การนำไปใช้</span><h2 id="s3">ใช้ได้ ระวัง และไม่ควรใช้</h2></div>
+    <div class="three">
+      <div class="card"><h3><span class="dot" style="background:var(--accent)"></span>ใช้ได้ดี</h3><p>ดูแนวโน้มเทียบ baseline ของตัวเอง (RHR, HRV, การนอน, การเคลื่อนไหว) ใช้กระตุ้นนิสัย เป็นสัญญาณให้ไปพบแพทย์ และแนบ ECG ให้แพทย์ดูประกอบ</p></div>
+      <div class="card"><h3><span class="dot" style="background:var(--accent2)"></span>ระวัง</h3><p>Recovery, Strain, Sleep Score เป็นสูตรของบริษัทที่ยังไม่พิสูจน์ว่าทำนายผลสุขภาพได้ ค่าแคลอรีคลาดเคลื่อนมาก การแจ้งเตือนผิดอาจทำให้กังวล และไม่มีแจ้งเตือนไม่ได้แปลว่าไม่มีโรค</p></div>
+      <div class="card"><h3><span class="dot" style="background:var(--red)"></span>ไม่ควรใช้</h3><p>ตัดสินอาการเจ็บหน้าอก ปรับยา ใช้ค่า SpO2 ตัดสินใจรักษา หรือใช้แทนการตรวจเลือดและตรวจการนอนในแล็บ</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s4">
+    <div class="sec-head"><span class="eyebrow">04 · สำหรับคู่มือนิสัย</span><h2 id="s4">แบ่งข้อมูลเป็น 3 ระดับ</h2></div>
+    <div class="tiers">
+      <div class="tier"><span class="lv">ระดับ 1</span><b>Wearable</b><span class="muted">สร้างนิสัยและติดตามแนวโน้มรายวัน</span></div>
+      <div class="tier"><span class="lv">ระดับ 2</span><b>อุปกรณ์บ้านที่ผ่าน validation</b><span class="muted">cuff วัดความดัน, pulse oximeter, เครื่องวัดน้ำตาล ใช้ยืนยันค่า</span></div>
+      <div class="tier"><span class="lv">ระดับ 3</span><b>แพทย์และแล็บ</b><span class="muted">วินิจฉัยและตัดสินใจรักษา</span></div>
+    </div>
+  </section>
+
+  <footer><p>เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำทางการแพทย์ Whoop และ Apple Watch เป็นเครื่องหมายการค้าของเจ้าของแต่ละราย</p></footer>
+</div>
+</body>
+</html>

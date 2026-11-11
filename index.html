@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HealthCare &amp; Wellness Systems</title>
+<meta name="description" content="แผนที่ระบบสุขภาพไทย และคลังความรู้อุปกรณ์/เทคโนโลยีการแพทย์ สำหรับสร้างคู่มือนิสัยสุขภาพเฉพาะบุคคล">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<script src="assets/theme.js"></script>
+<style>
+.hero{display:flex;flex-direction:column;gap:14px;padding-top:24px}
+.big{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.big .card{padding:26px;min-height:220px}
+.big .card h2{font-size:24px}
+.icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--surface2);color:var(--accent)}
+.icon svg{width:24px;height:24px}
+.steps{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));counter-reset:s}
+.steps li{list-style:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px;color:var(--muted)}
+.steps li b{display:block;color:var(--fg);font-family:var(--display);font-size:15px;margin-bottom:2px}
+.steps li::before{counter-increment:s;content:"0" counter(s);font-family:var(--mono);font-size:12px;color:var(--accent)}
+ol.steps{padding:0;margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav" aria-label="เมนูหลัก">
+    <span class="crumbs"><strong style="color:var(--fg)">HealthCare &amp; Wellness Systems</strong></span>
+    <button class="theme-btn" type="button">☾ มืด</button>
+  </nav>
+
+  <header class="hero">
+    <span class="eyebrow">คลังความรู้ระบบสุขภาพ</span>
+    <h1>จากระบบสุขภาพทั้งประเทศ ถึงอุปกรณ์บนข้อมือและในห้องผ่าตัด</h1>
+    <p class="lead">เว็บนี้รวมเครื่องมือสำหรับวางแผนคู่มือนิสัยสุขภาพเฉพาะบุคคล ตั้งแต่ภาพรวมว่าใครจ่ายเงิน ใครกำกับ และใครให้บริการในระบบสุขภาพไทย ไปจนถึงการแยกส่วนอุปกรณ์และเทคโนโลยีการแพทย์ว่าวัดอะไร ทำงานอย่างไร และน่าเชื่อถือแค่ไหน</p>
+  </header>
+
+  <section aria-label="เมนู" class="big">
+    <a class="card" href="health-system-map/index.html">
+      <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M11 7.2 6.2 15.8M13 7.2l4.8 8.6M7.5 18h9"/></svg></div>
+      <span class="tag">01 · ระบบสาธารณสุข</span>
+      <h2>แผนที่ระบบสุขภาพไทย</h2>
+      <p>แบบจำลอง 3 มิติของความสัมพันธ์ระหว่าง สธ. สปสช. สปส. กรมบัญชีกลาง โรงพยาบาลรัฐและเอกชน กับ WHO และกองทุนระดับโลก พร้อมตารางลำดับความสำคัญและความเร่งด่วน</p>
+      <span class="go">เปิดแผนที่ →</span>
+    </a>
+    <a class="card" href="medical-tech/index.html">
+      <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="3" width="10" height="18" rx="4"/><path d="M10 12h1.5l1-2 1.5 4 1-2H15"/></svg></div>
+      <span class="tag">02 · อุปกรณ์และเทคโนโลยี</span>
+      <h2>Smart Device และเทคโนโลยีการแพทย์</h2>
+      <p>แยกส่วนอุปกรณ์ทีละชิ้น ตั้งแต่ wearable อย่าง Whoop และ Apple Watch ไปจนถึงหุ่นยนต์ผ่าตัด da Vinci แบบ 3D และ 2D พร้อมประวัติรุ่นและเคสที่ใช้</p>
+      <span class="go">เปิดเมนูย่อย →</span>
+    </a>
+  </section>
+
+  <section aria-labelledby="how">
+    <div class="sec-head">
+      <span class="eyebrow">วิธีใช้ร่วมกัน</span>
+      <h2 id="how">ข้อมูลแต่ละชั้นใช้ทำอะไร</h2>
+    </div>
+    <ol class="steps">
+      <li><b>ดูภาพใหญ่</b>รู้ว่าสิทธิการรักษาและบริการมาจากไหน เพื่อวางเส้นทางของผู้ป่วยแต่ละกลุ่ม</li>
+      <li><b>เลือกเครื่องมือวัด</b>แยกให้ออกว่าข้อมูลจาก wearable ใช้ติดตามนิสัย ส่วนอุปกรณ์การแพทย์ใช้ยืนยันและวินิจฉัย</li>
+      <li><b>เข้าใจการรักษา</b>รู้จักเทคโนโลยีที่ผู้ป่วยอาจเจอ เช่น การผ่าตัดด้วยหุ่นยนต์ ข้อดี ข้อจำกัด และค่าใช้จ่าย</li>
+      <li><b>สร้างนิสัยเฉพาะคน</b>นำทั้งหมดมาออกแบบนิสัยสุขภาพที่ติดตามได้และรู้ว่าเมื่อไรควรพบแพทย์</li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำทางการแพทย์ ชื่อผลิตภัณฑ์และเครื่องหมายการค้าเป็นของเจ้าของแต่ละราย เว็บนี้ไม่ได้มีส่วนเกี่ยวข้องกับบริษัทผู้ผลิตใด</p>
+  </footer>
+</div>
+</body>
+</html>

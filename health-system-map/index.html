@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>แผนที่ระบบสุขภาพไทย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; the 3D stage breaks out with a side panel; comparison uses two columns that stack on phones */
+:root{
+  --bg:#F3F5F4; --surface:#FFFFFF; --fg:#14211E; --muted:#5A6B66; --line:#D6DEDB;
+  --accent:#0B7A63; --accent2:#B8661F;
+  --global:#2F63C9; --public:#0B7A63; --private:#B8661F; --people:#8A4FB8;
+  --e-fund:#C2410C; --e-reg:#6D28D9; --e-tech:#1D6FB8; --e-svc:#0F8A5F;
+  --stage:#0F1A1F; --stage-fg:#E6EEEC; --stage-muted:#8FA3A0;
+  --hi:#B42318; --mid:#B7791F; --lo:#4B6B63;
+  --display:"Bai Jamjuree","IBM Plex Sans Thai",system-ui,sans-serif;
+  --body:"IBM Plex Sans Thai",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1513; --surface:#14201D; --fg:#E3ECE9; --muted:#9AB0AA; --line:#26362F;
+  --accent:#3CC4A0; --accent2:#E59A52; --global:#6E9BF0; --public:#3CC4A0; --private:#E59A52; --people:#B98AE0;
+  --e-fund:#F08A4B; --e-reg:#A98BF2; --e-tech:#5FA8EC; --e-svc:#45C98F;
+  --stage:#081012; --stage-fg:#E6EEEC; --stage-muted:#8FA3A0;
+  --hi:#F2705F; --mid:#E2B04F; --lo:#86A89E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1513; --surface:#14201D; --fg:#E3ECE9; --muted:#9AB0AA; --line:#26362F;
+  --accent:#3CC4A0; --accent2:#E59A52; --global:#6E9BF0; --public:#3CC4A0; --private:#E59A52; --people:#B98AE0;
+  --e-fund:#F08A4B; --e-reg:#A98BF2; --e-tech:#5FA8EC; --e-svc:#45C98F;
+  --stage:#081012; --stage-fg:#E6EEEC; --stage-muted:#8FA3A0;
+  --hi:#F2705F; --mid:#E2B04F; --lo:#86A89E; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:56px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.25;margin:0}
+h1{font-size:clamp(28px,5vw,44px);font-weight:700}
+h2{font-size:clamp(21px,3vw,27px);font-weight:600}
+h3{font-size:17px;font-weight:600}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.lead{max-width:68ch;color:var(--muted);font-size:16px}
+header.top{display:flex;flex-direction:column;gap:12px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.note{font-size:13px;color:var(--muted);border-left:3px solid var(--accent);padding:4px 0 4px 12px;max-width:80ch}
+section{display:flex;flex-direction:column;gap:18px}
+.sec-head{display:flex;flex-direction:column;gap:6px}
+.sec-head p{color:var(--muted);max-width:72ch}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.seg button{font:500 13px var(--body);padding:6px 12px;border:0;background:var(--surface);color:var(--fg);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* 3D stage */
+.stage-wrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;border-radius:14px;overflow:hidden;background:var(--stage);color:var(--stage-fg)}
+@media (max-width:860px){.stage-wrap{grid-template-columns:1fr}}
+.stage{position:relative;height:min(72vh,640px);min-height:440px}
+.stage canvas{display:block;width:100%;height:100%;cursor:grab}
+.labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;transform:translate(-50%,-140%);font-size:11.5px;line-height:1.2;white-space:nowrap;padding:2px 6px;border-radius:4px;background:rgba(8,16,18,.62);color:var(--stage-fg);transition:opacity .15s}
+.lbl.big{font-size:13px;font-weight:600}
+.lbl.layer{background:transparent;color:var(--stage-muted);font-family:var(--mono);font-size:11px;letter-spacing:.05em}
+.countrybar{position:absolute;left:12px;right:12px;top:12px;display:flex;flex-wrap:wrap;gap:6px}
+.toolbar{position:absolute;left:12px;right:12px;bottom:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{font:500 12px var(--body);display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid rgba(230,238,236,.25);background:rgba(8,16,18,.7);color:var(--stage-fg);cursor:pointer}
+.chip[aria-pressed="false"]{opacity:.5}
+.countrybar .chip[aria-pressed="true"]{background:var(--stage-fg);color:var(--stage);opacity:1}
+.countrybar .chip[aria-pressed="false"]{opacity:.85}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.panel{padding:18px;display:flex;flex-direction:column;gap:12px;border-left:1px solid rgba(230,238,236,.1);max-height:min(72vh,640px);overflow:auto}
+@media (max-width:860px){.panel{border-left:0;border-top:1px solid rgba(230,238,236,.1);max-height:none}}
+.panel h3{color:var(--stage-fg)}
+.panel .kind{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--stage-muted)}
+.panel p{font-size:14px;color:#CBD8D5}
+.panel blockquote{margin:0;padding-left:10px;border-left:2px solid var(--stage-muted);font-size:14px;color:var(--stage-fg)}
+.panel ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.panel li{display:flex;gap:8px;align-items:baseline;color:#CBD8D5}
+.panel li button{all:unset;cursor:pointer;color:var(--stage-fg);text-decoration:underline;text-decoration-color:rgba(230,238,236,.3);text-underline-offset:3px}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:12px;color:var(--stage-muted)}
+.legend span{display:flex;gap:6px;align-items:center}
+.ln{width:18px;height:3px;border-radius:2px;flex:none;display:inline-block}
+.fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:var(--stage-muted);pointer-events:none}
+
+/* actor cards */
+.actors{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.group{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.group .gh{display:flex;align-items:center;gap:8px}
+.group ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:14px}
+.group b{font-weight:600}
+.muted{color:var(--muted)}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--display);font-weight:600;font-size:13px;color:var(--muted);background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:13px;white-space:nowrap}
+.lvl{display:inline-block;font-family:var(--mono);font-size:11px;padding:1px 7px;border-radius:4px;border:1px solid var(--line);white-space:nowrap}
+th button{all:unset;cursor:pointer}
+
+/* compare */
+.pickers{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.pickers label{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500}
+select{font:500 14px var(--body);padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
+.cmp{display:grid;grid-template-columns:160px minmax(0,1fr) minmax(0,1fr);border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.cmp>div{padding:10px 14px;border-bottom:1px solid var(--line);font-size:14px;min-width:0}
+.cmp .k{font-family:var(--display);font-weight:600;font-size:13px;color:var(--muted);background:var(--bg)}
+.cmp .h{font-family:var(--display);font-weight:700;font-size:16px}
+.cmp .h small{display:block;font-family:var(--body);font-weight:400;font-size:13px;color:var(--muted)}
+.cmp .a{border-left:3px solid var(--accent)} .cmp .b{border-left:3px solid var(--accent2)}
+.cmp .q{font-weight:500}
+.stats{display:flex;gap:14px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.stats span{display:flex;flex-direction:column;font-family:var(--mono);font-size:15px}
+.stats small{font-family:var(--body);font-size:11.5px;color:var(--muted)}
+@media (max-width:700px){.cmp{grid-template-columns:1fr}.cmp .k{border-bottom:0;padding-bottom:2px}}
+.axes{display:flex;flex-direction:column;gap:20px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+.axis{display:flex;flex-direction:column;gap:6px}
+.axis .ends{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);gap:12px}
+.axis .ends span:last-child{text-align:right}
+.track{position:relative;height:66px;border-bottom:2px solid var(--line)}
+.mk{position:absolute;transform:translateX(-50%);font-family:var(--mono);font-size:11px;padding:1px 5px;border-radius:4px;background:var(--bg);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.mk.A{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
+.mk.B{background:var(--accent2);border-color:var(--accent2);color:var(--surface);font-weight:600}
+
+/* matrix */
+.matrix{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));gap:6px;overflow-x:auto}
+.matrix .ax{font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:center;text-align:center;padding:4px}
+.cell{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px;min-height:84px;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start;min-width:0}
+.cell.hot{border-color:var(--hi);border-width:2px}
+.mchip{font-size:12px;line-height:1.3;padding:3px 7px;border-radius:5px;background:var(--bg);border:1px solid var(--line);cursor:pointer;text-align:left;color:var(--fg);font-family:var(--body)}
+.mchip.g{border-left:3px solid var(--global)} .mchip.d{border-left:3px solid var(--public)}
+.mchip:hover{border-color:var(--accent)}
+@media (max-width:640px){.matrix{grid-template-columns:auto repeat(3,minmax(110px,1fr))}}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.pill{display:inline-block;font-family:var(--mono);font-size:11.5px;font-weight:500;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.p1{background:color-mix(in srgb,var(--hi) 16%,transparent);color:var(--hi)}
+.p2{background:color-mix(in srgb,var(--mid) 18%,transparent);color:var(--mid)}
+.p3{background:color-mix(in srgb,var(--lo) 18%,transparent);color:var(--lo)}
+tr.flash td{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.scope{font-size:12px;color:var(--muted);white-space:nowrap}
+footer{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px;max-width:80ch}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<nav style="font-size:13px;font-family:var(--mono)"><a href="../index.html" style="color:var(--accent)">← หน้าหลัก</a> · <a href="../medical-tech/index.html" style="color:var(--accent)">เทคโนโลยีการแพทย์</a></nav>
+<header class="top">
+  <div class="topbar">
+    <span class="eyebrow" data-t="eyebrow"></span>
+    <div class="seg" role="group" aria-label="Language">
+      <button id="lang-th" aria-pressed="true">ไทย</button><button id="lang-en" aria-pressed="false">English</button>
+    </div>
+  </div>
+  <h1 data-t="h1"></h1>
+  <p class="lead" data-t="lead"></p>
+  <p class="note" data-t="note"></p>
+</header>
+
+<section aria-labelledby="s-model">
+  <div class="sec-head">
+    <span class="eyebrow" data-t="m-eb"></span>
+    <h2 id="s-model" data-t="m-h"></h2>
+    <p data-t="m-p"></p>
+  </div>
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <div class="labels" id="labels"></div>
+      <div class="countrybar" id="countrybar"></div>
+      <div class="toolbar" id="toolbar"></div>
+    </div>
+    <aside class="panel" id="panel" aria-live="polite"></aside>
+  </div>
+</section>
+
+<section aria-labelledby="s-cmp">
+  <div class="sec-head">
+    <span class="eyebrow" data-t="c-eb"></span>
+    <h2 id="s-cmp" data-t="c-h"></h2>
+    <p data-t="c-p"></p>
+  </div>
+  <div class="pickers">
+    <label><span class="swatch" style="background:var(--accent)"></span><span data-t="c-a"></span><select id="selA"></select></label>
+    <label><span class="swatch" style="background:var(--accent2)"></span><span data-t="c-b"></span><select id="selB"></select></label>
+  </div>
+  <div class="cmp" id="cmp"></div>
+  <h3 data-t="ax-h"></h3>
+  <div class="axes" id="axes"></div>
+  <h3 data-t="ov-h"></h3>
+  <div class="tbl"><table id="ov"></table></div>
+</section>
+
+<section aria-labelledby="s-actors">
+  <div class="sec-head">
+    <span class="eyebrow" data-t="a-eb"></span>
+    <h2 id="s-actors" data-t="a-h"></h2>
+  </div>
+  <div class="actors" id="actors"></div>
+</section>
+
+<section aria-labelledby="s-care">
+  <div class="sec-head">
+    <span class="eyebrow" data-t="k-eb"></span>
+    <h2 id="s-care" data-t="k-h"></h2>
+    <p data-t="k-p"></p>
+  </div>
+  <h3 data-t="k1"></h3><div class="tbl"><table id="care1"></table></div>
+  <h3 data-t="k2"></h3><div class="tbl"><table id="care2"></table></div>
+  <h3 data-t="k3"></h3><div class="tbl"><table id="care3"></table></div>
+</section>
+
+<section aria-labelledby="s-ms">
+  <div class="sec-head">
+    <span class="eyebrow">Milestone</span>
+    <h2 id="s-ms" data-t="ms-h"></h2>
+    <p data-t="ms-p"></p>
+  </div>
+  <div class="matrix" id="matrix"></div>
+  <div class="controls">
+    <div class="seg" role="group" aria-label="scope">
+      <button id="f-all" aria-pressed="true" data-t="f-all"></button><button id="f-d" aria-pressed="false" data-t="f-d"></button><button id="f-g" aria-pressed="false" data-t="f-g"></button>
+    </div>
+    <span class="muted" style="font-size:13px" data-t="sorthint"></span>
+  </div>
+  <div class="tbl"><table id="mtable"><thead></thead><tbody></tbody></table></div>
+</section>
+
+<footer>
+  <b data-t="src-h"></b>
+  <p data-t="src"></p>
+</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+/* ================= i18n ================= */
+let lang='th';
+try{const s=localStorage.getItem('hsm-lang');if(s==='en'||s==='th')lang=s;}catch(e){}
+const t=x=>x==null?'':(typeof x==='string'?x:x[lang==='en'?1:0]);
+const STR={
+ eyebrow:['ระบบสุขภาพไทย × เครือข่ายสุขภาพโลก · ฉบับ พ.ย. 2569','Thai health system × global health network · Nov 2026'],
+ h1:['ใครอยู่ในระบบสุขภาพไทย และต่างจากประเทศอื่นอย่างไร','Who makes up Thailand\'s health system, and how it differs from others'],
+ lead:['แผนที่ผู้เล่นทั้งภาครัฐ เอกชน ชุมชน และองค์กรนานาชาติ เทียบกับโมเดลของ 7 ประเทศ พร้อมระดับการรักษา สิทธิการรักษา และ Milestone เรียงตาม Priority กับ Urgency','A map of public, private, community and international actors, compared with seven other countries\' models, plus levels of care, coverage schemes and milestones ranked by priority and urgency.'],
+ note:['"ในประเทศ" ตีความว่าประเทศไทย ตัวเลขเป็นค่าประมาณจากรายงานสาธารณะ (WHO GHED, OECD และรายงานของแต่ละหน่วยงาน ปี 2564–2567) ตำแหน่งบนแกนการออกแบบเป็นการประเมินเชิงคุณภาพ ควรตรวจกับแหล่งข้อมูลทางการก่อนอ้างอิง','"Domestic" is read as Thailand. Figures are approximate, from public reports (WHO GHED, OECD and agency reports, 2021–2024). Positions on the design axes are qualitative judgements. Check official sources before citing.'],
+ 'm-eb':['โมเดล 3 มิติ','3D model'],
+ 'm-h':['ความเชื่อมโยง 4 ชั้น เลือกประเทศได้','Four layers of connections, by country'],
+ 'm-p':['เลือกประเทศที่แถบด้านบนของโมเดล ชั้นบนสุดคือองค์กรนานาชาติ ถัดลงมาคือนโยบายและผู้จ่ายเงิน ผู้ให้บริการ และประชาชน ลากเพื่อหมุน เลื่อนล้อเพื่อซูม แตะจุดเพื่อดูบทบาทและเส้นเชื่อม','Pick a country in the bar at the top of the model. Layers run from international bodies, through policy and payers and providers, down to people. Drag to rotate, scroll to zoom, tap a node to see its role and links.'],
+ 'c-eb':['เทียบโมเดลประเทศ','Country models'],
+ 'c-h':['แต่ละประเทศตั้งโจทย์และวางรากฐานต่างกันอย่างไร','How each country framed the problem and built its foundation'],
+ 'c-p':['เลือกสองประเทศเพื่อเทียบทีละมิติ ระบบสุขภาพแต่ละแบบเริ่มจากคำถามที่ต่างกัน และคำถามนั้นกำหนดว่าใครจ่าย ใครให้บริการ และประชาชนเข้าถึงอย่างไร','Choose two countries to compare side by side. Each system started from a different question, and that question shaped who pays, who provides, and how people get care.'],
+ 'c-a':['ประเทศ A','Country A'],'c-b':['ประเทศ B','Country B'],
+ 'ax-h':['แกนการออกแบบ (ทุกประเทศ)','Design axes (all countries)'],
+ 'ov-h':['ภาพรวมทุกประเทศ','All countries at a glance'],
+ 'a-eb':['ผู้เล่นในระบบไทย','Thai actors'],
+ 'a-h':['ระบบสุขภาพไทยประกอบด้วยใครบ้าง','Who makes up the Thai health system'],
+ 'k-eb':['การแยกการรักษา','Types of care'],
+ 'k-h':['ไทยแบ่งการรักษาเป็นแบบใด','How care is divided in Thailand'],
+ 'k-p':['แบ่งได้สามมุม คือระดับบริการ หน้าที่ของบริการ และสิทธิที่จ่ายเงินให้ ทั้งสามมุมซ้อนกันอยู่ในผู้ป่วยคนเดียว','Three overlapping views: level of service, function of service, and the scheme that pays.'],
+ k1:['1. ตามระดับบริการ','1. By level of service'],k2:['2. ตามหน้าที่ของบริการ','2. By function'],k3:['3. ตามสิทธิการรักษา','3. By coverage scheme'],
+ 'ms-h':['ลำดับ Priority และ Urgency','Priority and urgency'],
+ 'ms-p':['Priority คือผลกระทบต่อสุขภาพคนไทยและความยั่งยืนของระบบ (P1 สูงสุด) Urgency คือแรงกดดันด้านเวลาใน 12–18 เดือน ช่องขอบแดงคือ "ทำก่อน" แตะชื่อในเมทริกซ์เพื่อเลื่อนไปดูรายละเอียด','Priority is impact on Thai health and system sustainability (P1 highest). Urgency is time pressure over the next 12–18 months. The red-bordered cell is "do first". Tap an item to jump to its row.'],
+ 'f-all':['ทั้งหมด','All'],'f-d':['ในประเทศ','Domestic'],'f-g':['ระดับโลก','Global'],
+ sorthint:['แตะหัวคอลัมน์เพื่อเรียงลำดับ','Tap a column header to sort'],
+ 'src-h':['หมายเหตุและแหล่งอ้างอิง','Notes and sources'],
+ src:['ข้อมูลจากรายงานสาธารณะของ สธ., สปสช., สำนักงานประกันสังคม, กรมบัญชีกลาง, WHO (ข้อแก้ไข IHR มีผล 19 ก.ย. 2568 และความตกลงว่าด้วยโรคระบาดที่รับรองใน WHA78 พ.ค. 2568), WHO Global Health Expenditure Database, OECD Health Statistics, Global Fund และ Gavi สถานะภาคผนวก PABS และงบ Global Fund รอบ 2569–2571 ควรตรวจความคืบหน้าล่าสุด','Based on public reports from MOPH, NHSO, SSO, the Comptroller General\'s Department, WHO (IHR amendments in force 19 Sep 2025; Pandemic Agreement adopted at WHA78, May 2025), the WHO Global Health Expenditure Database, OECD Health Statistics, the Global Fund and Gavi. Check the latest status of the PABS annex and Global Fund 2026–2028 allocations.']
+};
+const UI={
+ layers:[['นานาชาติ','INTERNATIONAL'],['นโยบาย / ผู้จ่ายเงิน','POLICY & PAYERS'],['ผู้ให้บริการ','PROVIDERS'],['ประชาชน / ชุมชน','PEOPLE']],
+ sector:{intl:['นานาชาติ','International'],pub:['ภาครัฐ','Public'],pvt:['ภาคเอกชน','Private'],comm:['ประชาชน/ชุมชน','People & community']},
+ etype:{fund:['เงิน/งบประมาณ','Money'],reg:['กำกับ/มาตรฐาน','Regulation'],tech:['วิชาการ/ข้อมูล','Technical & data'],svc:['บริการ/ส่งต่อ/จัดหา','Care, referral & supply']},
+ howto:['วิธีอ่าน','How to read'],
+ howp:['สีของจุดบอกภาคส่วน สีของเส้นบอกชนิดความสัมพันธ์ จุดเคลื่อนบนเส้นแสดงทิศทางของเงิน การกำกับ ข้อมูล หรือผู้ป่วย','Node colour shows the sector, line colour the kind of link. Moving dots show the direction of money, regulation, data or patients.'],
+ q:['โจทย์ตั้งต้น','Founding question'],
+ counts:['หน่วยงาน','actors'],links:['เส้นเชื่อม','links'],
+ out:['ส่งออกไปยัง','Sends to'],inn:['รับเข้าจาก','Receives from'],clear:['ล้างการเลือก','Clear selection'],
+ spin:['หมุนอัตโนมัติ','Auto-rotate'],
+ nogl:['โหลดโมเดล 3D ไม่สำเร็จ ดูส่วนเปรียบเทียบและตารางด้านล่างแทนได้','The 3D model could not load. The comparison and tables below still work.'],
+ rows:{q:['โจทย์ตั้งต้น','Founding question'],found:['รากฐาน','Foundation'],fin:['แหล่งเงิน','Financing'],payer:['ผู้จ่ายเงิน','Payer(s)'],prov:['ผู้ให้บริการ','Providers'],access:['การเข้าถึง','Access to care'],str:['จุดแข็ง','Strengths'],weak:['จุดอ่อน','Weaknesses'],lesson:['บทเรียนสำหรับไทย','Lesson for Thailand'],stats:['ตัวเลขสำคัญ','Key figures']},
+ che:['ใช้จ่ายสุขภาพ/GDP','Health spend / GDP'],oop:['จ่ายเองจากกระเป๋า','Out-of-pocket share'],le:['อายุคาดเฉลี่ย (ปี)','Life expectancy (yrs)'],
+ ov:[['ประเทศ','Country'],['รูปแบบ','Model'],['โจทย์ตั้งต้น','Founding question'],['ใช้จ่าย/GDP','Spend/GDP'],['จ่ายเอง','OOP'],['อายุคาดเฉลี่ย','Life exp.']],
+ axes:[
+  [['เงินมาจากภาษี','Funded by taxes'],['เงินสมทบประกัน','Insurance contributions'],['เบี้ยเอกชน / จ่ายเอง','Private premiums / out of pocket']],
+  [['ผู้จ่ายเดียว','Single payer'],null,['ผู้จ่ายหลายราย','Many payers']],
+  [['ผู้ให้บริการรัฐเป็นหลัก','Mostly public providers'],null,['ผู้ให้บริการเอกชนเป็นหลัก','Mostly private providers']],
+  [['ต้องผ่านด่านปฐมภูมิ','Gatekeeping through primary care'],null,['เลือกแพทย์เฉพาะทางเองได้','Free choice of specialist']]
+ ]
+};
+
+/* ================= Data: countries ================= */
+const n=(id,layer,sector,label,desc,big)=>({id,layer,sector,label,desc,big:!!big});
+const e=s=>s.split(' ').map(x=>{const [a,ty]=x.split(':');const [s1,t1]=a.split('>');return {s:s1,t:t1,type:ty};});
+
+const TH_N=[
+ n('who','global','intl',['WHO','WHO'],['องค์การอนามัยโลก กำหนดมาตรฐานสากล IHR และความตกลงว่าด้วยโรคระบาด สหรัฐถอนตัวมีผล ม.ค. 2569 ทำให้งบลดลง','Sets global norms, the IHR and the Pandemic Agreement. US withdrawal took effect Jan 2026, cutting its budget.'],1),
+ n('searo','global','intl',['WHO SEARO','WHO SEARO'],['สำนักงานภูมิภาคเอเชียตะวันออกเฉียงใต้ (นิวเดลี) ประสานแผนระดับภูมิภาค','South-East Asia regional office (New Delhi); coordinates regional plans.']),
+ n('whoth','global','intl',['WHO ประเทศไทย','WHO Thailand'],['สนับสนุนวิชาการแก่ สธ. ผ่านแผนความร่วมมือ WHO–ไทย','Technical support to MOPH through the WHO–Thailand country cooperation strategy.']),
+ n('unicef','global','intl',['UNICEF','UNICEF'],['สุขภาพแม่และเด็ก โภชนาการ และระบบจัดซื้อวัคซีนให้ประเทศรายได้ต่ำ','Maternal and child health, nutrition, vaccine procurement for low-income countries.']),
+ n('unaids','global','intl',['UNAIDS','UNAIDS'],['เป้ายุติเอดส์ 2573 และตัวชี้วัด 95-95-95','The 2030 end-AIDS target and 95-95-95 indicators.']),
+ n('wb','global','intl',['ธนาคารโลก','World Bank'],['เงินกู้และงานวิเคราะห์การคลังสุขภาพ ดูแล Pandemic Fund','Loans and health-financing analysis; hosts the Pandemic Fund.']),
+ n('gf','global','intl',['Global Fund','Global Fund'],['ให้ทุนไทยบางส่วนด้าน HIV วัณโรค มาลาเรีย ไทยอยู่ระหว่างเปลี่ยนผ่านไปใช้งบในประเทศ','Still funds parts of Thailand\'s HIV, TB and malaria work; Thailand is transitioning to domestic funding.'],1),
+ n('gavi','global','intl',['Gavi','Gavi'],['ไทยไม่อยู่ในกลุ่มรับทุน จัดซื้อวัคซีนเองทั้งหมด','Thailand is not eligible and buys all its vaccines itself.']),
+ n('cepi','global','intl',['CEPI','CEPI'],['ลงทุนพัฒนาวัคซีนโรคระบาดใหม่ เป้า 100 วัน','Invests in vaccines for new epidemics; the 100-day mission.']),
+ n('gates','global','intl',['Gates Foundation','Gates Foundation'],['ให้ทุนงานวิจัยและการประเมินเทคโนโลยีสุขภาพ','Funds research and health technology assessment.']),
+ n('wellcome','global','intl',['Wellcome Trust','Wellcome Trust'],['ผู้ให้ทุนหลักของ MORU','Main funder of MORU.']),
+ n('moru','global','intl',['MORU (แล็บ)','MORU (lab)'],['ห้องแล็บวิจัยมาลาเรีย เชื้อดื้อยา และโรคเขตร้อน ของมหิดลกับอ็อกซ์ฟอร์ด','Mahidol–Oxford lab for malaria, drug resistance and tropical diseases.']),
+ n('afrims','global','intl',['AFRIMS (แล็บ)','AFRIMS (lab)'],['ห้องแล็บไทย–สหรัฐ ด้านไข้เลือดออก มาลาเรีย HIV และวัคซีน','Thai–US lab for dengue, malaria, HIV and vaccines.']),
+ n('uscdc','global','intl',['US CDC / PEPFAR','US CDC / PEPFAR'],['ความร่วมมือ HIV/TB และระบาดวิทยา งบลดลงมากตั้งแต่ 2568','HIV/TB and epidemiology partnership; funding cut sharply since 2025.']),
+ n('asean','global','intl',['ASEAN / ACPHEED','ASEAN / ACPHEED'],['ศูนย์อาเซียนด้านภาวะฉุกเฉินทางสาธารณสุข สำนักเลขาธิการอยู่ในไทย','ASEAN centre for public health emergencies; secretariat in Thailand.']),
+ n('mof','policy','pub',['กระทรวงการคลัง','Ministry of Finance'],['แหล่งงบหลักของทั้งสามกองทุนและ สธ.','Main source of funds for the three schemes and MOPH.']),
+ n('moph','policy','pub',['กระทรวงสาธารณสุข','Ministry of Public Health'],['วางนโยบายและเป็นเจ้าของ รพ.รัฐส่วนใหญ่ แบ่ง 12 เขตสุขภาพ + กทม.','Sets policy and owns most public hospitals; 12 health regions plus Bangkok.'],1),
+ n('ddc','policy','pub',['กรมควบคุมโรค','Dept. of Disease Control'],['เฝ้าระวังโรค จุดประสาน IHR ดูแล HIV วัณโรค มาลาเรีย','Surveillance, IHR focal point, HIV/TB/malaria programmes.']),
+ n('dmsc','policy','pub',['กรมวิทย์ฯ การแพทย์','Dept. of Medical Sciences'],['แล็บอ้างอิงระดับชาติ (Thai NIH) ศูนย์ไข้หวัดใหญ่ในเครือข่าย WHO','National reference lab (Thai NIH); WHO influenza network centre.']),
+ n('fda','policy','pub',['อย.','Thai FDA'],['ขึ้นทะเบียนยา วัคซีน อาหาร เครื่องมือแพทย์ กำกับร้านยา','Registers drugs, vaccines, food and devices; licenses pharmacies.']),
+ n('hss','policy','pub',['กรม สบส.','Dept. of Health Service Support'],['อนุญาตสถานพยาบาลเอกชน ดูแล อสม.','Licenses private facilities; supports village health volunteers.']),
+ n('nhso','policy','pub',['สปสช.','NHSO'],['บัตรทองราว 47 ล้านคน ผู้ซื้อบริการแทนประชาชน จ่ายเหมาหัวและ DRG','Universal Coverage Scheme for ~47 million; buys care via capitation and DRGs.'],1),
+ n('sso','policy','pub',['ประกันสังคม','Social Security Office'],['ลูกจ้าง ม.33/39 ราว 13 ล้านคน ผ่าน รพ.คู่สัญญารัฐและเอกชน','~13 million employees via contracted public and private hospitals.']),
+ n('cgd','policy','pub',['กรมบัญชีกลาง','Comptroller General\'s Dept.'],['สวัสดิการข้าราชการและครอบครัวราว 5 ล้านคน','Civil servant scheme for ~5 million incl. dependants.']),
+ n('thaihealth','policy','pub',['สสส.','ThaiHealth'],['รับ 2% จากภาษีสุราและยาสูบ ทุนงานสร้างเสริมสุขภาพ','Funded by a 2% surcharge on alcohol and tobacco taxes; health promotion grants.']),
+ n('hsri','policy','pub',['สวรส. / HITAP','HSRI / HITAP'],['วิจัยระบบและประเมินความคุ้มค่าก่อนเพิ่มสิทธิประโยชน์','Health systems research and cost-effectiveness for benefit decisions.']),
+ n('oic','policy','pub',['คปภ.','OIC (insurance regulator)'],['กำกับประกันสุขภาพเอกชน รวมเงื่อนไข Copayment ตั้งแต่ 2568','Regulates private health insurance, incl. 2025 co-payment rules.']),
+ n('ha','policy','pub',['สรพ. (HA)','HA Thailand'],['รับรองคุณภาพโรงพยาบาล','Hospital accreditation.']),
+ n('council','policy','pub',['สภาวิชาชีพ','Professional councils'],['แพทยสภา สภาการพยาบาล ฯลฯ ออกใบอนุญาตบุคลากร','Medical, nursing and other councils license professionals.']),
+ n('lao','policy','pub',['อปท. / อบจ.','Local government (PAO)'],['รับถ่ายโอน รพ.สต. ตั้งแต่ 2565 ร่วมทุนกองทุนสุขภาพตำบลและ LTC','Took over many health centres since 2022; co-funds local health and LTC.']),
+ n('rh','provider','pub',['รพ.ศูนย์ / รพ.ทั่วไป','Regional & general hospitals'],['ราว 125 แห่ง ระดับจังหวัด ตติยภูมิและทุติยภูมิ','~125 provincial hospitals; secondary and tertiary care.'],1),
+ n('ch','provider','pub',['รพ.ชุมชน','Community hospitals'],['ราว 780 แห่ง ระดับอำเภอ แม่ข่ายของ รพ.สต.','~780 district hospitals; hubs for health centres.']),
+ n('phc','provider','pub',['รพ.สต.','Sub-district health centres'],['ราว 9,800 แห่ง ปฐมภูมิใกล้บ้าน ส่วนหนึ่งสังกัด อบจ.','~9,800 primary care units; many now under provincial councils.']),
+ n('uni','provider','pub',['รพ.มหาวิทยาลัย','University hospitals'],['ตติยภูมิขั้นสูง ผลิตแพทย์ งานวิจัย','Advanced tertiary care, training, research.']),
+ n('otherpub','provider','pub',['รพ.สังกัดอื่น','Other public hospitals'],['กลาโหม ตำรวจ กทม.','Military, police and Bangkok hospitals.']),
+ n('trc','provider','pub',['สภากาชาดไทย','Thai Red Cross'],['ศูนย์บริการโลหิต เซรุ่ม ศูนย์โรคติดเชื้ออุบัติใหม่','Blood services, antivenom, emerging infectious disease centre.']),
+ n('niems','provider','pub',['สพฉ. 1669','NIEMS 1669'],['การแพทย์ฉุกเฉิน ใช้ได้ทุกสิทธิ (UCEP)','Emergency medical services for every scheme (UCEP).']),
+ n('gpo','provider','pub',['องค์การเภสัชกรรม','GPO'],['ผลิตยา วัคซีน ช่องทางจัดซื้อรวมของ สปสช.','Makes drugs and vaccines; central procurement channel for NHSO.']),
+ n('pvh','provider','pvt',['รพ.เอกชน','Private hospitals'],['ราว 400 แห่ง เช่น BDMS บำรุงราษฎร์ บางกอกเชน','~400 hospitals, e.g. BDMS, Bumrungrad, Bangkok Chain.'],1),
+ n('clinic','provider','pvt',['คลินิกเอกชน','Private clinics'],['ปฐมภูมิ ส่วนหนึ่งเป็นหน่วยบริการบัตรทองในเมือง','Primary care; some are UCS units in cities.']),
+ n('pharm','provider','pvt',['ร้านยา','Pharmacies'],['ร่วม 30 บาทรักษาทุกที่และรับยาใกล้บ้าน','Part of "30 baht anywhere" and near-home dispensing.']),
+ n('lab','provider','pvt',['แล็บเอกชน','Private labs'],['ตรวจวินิจฉัย รับส่งต่อจาก รพ.','Diagnostics and referred tests.']),
+ n('ins','provider','pvt',['บริษัทประกัน','Private insurers'],['ผู้จ่ายเงินภาคเอกชน ใช้กับ รพ.เอกชนเป็นหลัก','Private payers, mostly used at private hospitals.']),
+ n('pharma','provider','pvt',['บริษัทยา/เวชภัณฑ์','Pharma & medtech'],['จัดหายาและอุปกรณ์ให้รัฐและเอกชน','Supplies drugs and devices to all providers.']),
+ n('people','people','comm',['ประชาชน','People'],['ราว 66 ล้านคน ทุกคนมีสิทธิอย่างน้อยหนึ่งกองทุน','~66 million; everyone belongs to at least one scheme.'],1),
+ n('vhv','people','comm',['อสม.','Village health volunteers'],['ราว 1 ล้านคน ด่านแรกของระบบ','~1 million; the system\'s front line.']),
+ n('cso','people','comm',['ภาคประชาสังคม','Civil society'],['มูลนิธิ กลุ่มผู้ป่วย บริการเชิงรุก HIV/TB','Foundations and patient groups; HIV/TB outreach.'])
+];
+TH_N.forEach(x=>{x.group=x.sector==='intl'?'intl':x.sector==='pvt'?'pvt':x.sector==='comm'?'comm':x.layer==='provider'?'pubprov':['nhso','sso','cgd','mof','thaihealth','lao','hsri'].includes(x.id)?'pay':'reg';});
+const TH_E=e('mof>nhso:fund mof>cgd:fund mof>moph:fund mof>sso:fund mof>thaihealth:fund mof>lao:fund nhso>rh:fund nhso>ch:fund nhso>phc:fund nhso>uni:fund nhso>clinic:fund nhso>pharm:fund nhso>lab:fund nhso>lao:fund sso>rh:fund sso>pvh:fund sso>uni:fund cgd>rh:fund cgd>uni:fund ins>pvh:fund people>ins:fund people>sso:fund lao>phc:fund thaihealth>cso:fund gf>ddc:fund gf>cso:fund uscdc>ddc:fund gates>hsri:fund wellcome>moru:fund wb>moph:fund gavi>unicef:fund cepi>who:tech moph>rh:reg moph>ch:reg fda>pharma:reg fda>pharm:reg hss>pvh:reg hss>clinic:reg oic>ins:reg ha>rh:reg ha>pvh:reg council>uni:reg council>clinic:reg dmsc>lab:reg who>ddc:reg who>searo:tech searo>whoth:tech whoth>moph:tech unicef>moph:tech unaids>ddc:tech dmsc>who:tech moru>who:tech afrims>ddc:tech uscdc>dmsc:tech hsri>nhso:tech asean>ddc:tech moru>uni:tech moph>ddc:tech moph>dmsc:tech hss>vhv:tech people>vhv:svc vhv>phc:svc people>phc:svc phc>ch:svc ch>rh:svc rh>uni:svc people>pharm:svc people>clinic:svc people>pvh:svc niems>rh:svc niems>pvh:svc people>niems:svc pvh>lab:svc rh>lab:svc gpo>nhso:svc gpo>rh:svc pharma>pvh:svc pharma>rh:svc trc>uni:svc otherpub>uni:svc cso>people:svc clinic>rh:svc');
+
+const COUNTRIES=[
+{code:'TH',name:['ไทย','Thailand'],model:['ภาษี + หลายกองทุน (UHC 2545)','Tax-funded UHC with several schemes (2002)'],
+ q:['ทำอย่างไรให้คนราว 18 ล้านคนที่ไม่มีหลักประกันได้รับการคุ้มครอง ด้วยงบของประเทศรายได้ปานกลาง','How can ~18 million uninsured people be covered on a middle-income budget?'],
+ found:['พ.ร.บ.หลักประกันสุขภาพแห่งชาติ 2545 ต่อยอดเครือข่าย รพ.ชุมชนทุกอำเภอที่สร้างมาตั้งแต่ทศวรรษ 2520','National Health Security Act 2002, built on the district hospital network expanded since the 1980s'],
+ fin:['ภาษีทั่วไปเป็นหลัก บวกเงินสมทบประกันสังคม','Mainly general taxes, plus social security payroll contributions'],
+ payer:['3 กองทุนหลัก แยกผู้ซื้อบริการ (สปสช.) ออกจากผู้ให้บริการ','Three main schemes; purchaser (NHSO) separated from providers'],
+ prov:['รัฐเป็นหลักโดยเฉพาะชนบท เอกชนเด่นในเมือง','Mostly public, especially rural; private strong in cities'],
+ access:['ลงทะเบียนหน่วยบริการประจำ ต้องมีใบส่งต่อ (ผ่อนคลายด้วย 30 บาทรักษาทุกที่)','Registered with a main provider; referral needed (eased by "30 baht anywhere")'],
+ str:['ต้นทุนต่ำ ป้องกันการล้มละลายจากค่ารักษาได้ดี ใช้ HTA ตัดสินสิทธิประโยชน์','Low cost, strong protection from catastrophic spending, HTA-based benefits'],
+ weak:['สิทธิต่างกันระหว่างกองทุน บุคลากรขาดและภาระงานสูง','Unequal benefits across schemes; staff shortages and heavy workloads'],
+ lesson:['งานถัดไป: รวมมาตรฐาน 3 กองทุน และสร้างระบบดูแลระยะยาว','Next: harmonise the three schemes and build long-term care'],
+ stats:['~5%','~9%','~80'],axes:[15,55,25,30],graph:{N:TH_N,E:TH_E}},
+{code:'UK',name:['สหราชอาณาจักร','United Kingdom'],model:['NHS แบบ Beveridge (2491)','NHS, Beveridge model (1948)'],
+ q:['ทำอย่างไรให้การรักษาฟรี ณ จุดบริการ ตามความจำเป็น ไม่ใช่ตามความสามารถจ่าย','How can care be free at the point of use, based on need rather than ability to pay?'],
+ found:['รายงาน Beveridge 2485 หลังสงครามโลกรัฐรวมโรงพยาบาลเป็นของชาติ','The 1942 Beveridge Report; after WWII the state nationalised hospitals'],
+ fin:['ภาษีทั่วไปเกือบทั้งหมด','Almost entirely general taxation'],
+ payer:['รัฐเป็นผู้จ่ายเดียว จัดสรรผ่าน Integrated Care Boards 42 แห่ง','Single public payer, commissioning via 42 Integrated Care Boards'],
+ prov:['โรงพยาบาลเป็นของรัฐ (NHS Trusts) ส่วน GP เป็นผู้รับสัญญาอิสระ','Hospitals are state-owned NHS Trusts; GPs are independent contractors'],
+ access:['GP เป็นด่านแรกบังคับ พบแพทย์เฉพาะทางต้องมีใบส่งต่อ','GP gatekeeping; specialists need a referral'],
+ str:['เท่าเทียมสูง แทบไม่ต้องจ่ายเอง NICE เป็นต้นแบบ HTA ของโลก','High equity, almost no charges; NICE is a global HTA reference'],
+ weak:['รอคิวนาน งบไม่พอกับความต้องการ การดูแลระยะยาวแยกจาก NHS','Long waiting lists, funding strain, social care outside the NHS'],
+ lesson:['HITAP ของไทยได้แนวคิดจาก NICE ถ้าเน้นด่านปฐมภูมิต้องมีกำลังคนพอ ไม่งั้นคิวยาว','Thailand\'s HITAP draws on NICE; strong gatekeeping needs enough staff to avoid queues'],
+ stats:['~11%','~14%','~81'],axes:[5,5,10,10],
+ graph:{N:[
+  n('who','global','intl',['WHO / ยุโรป','WHO / Europe'],['สมาชิก WHO ภูมิภาคยุโรป','Member of the WHO European region'],1),
+  n('treasury','policy','pub',['กระทรวงการคลัง','HM Treasury'],['จัดสรรงบจากภาษีให้ NHS','Allocates tax revenue to the NHS']),
+  n('dhsc','policy','pub',['กระทรวงสาธารณสุข (DHSC)','DHSC'],['รับผิดชอบนโยบาย NHS ประกาศรวม NHS England เข้ากระทรวงในปี 2568','Sets NHS policy; announced merging NHS England into the department in 2025'],1),
+  n('nhse','policy','pub',['NHS England','NHS England'],['บริหารงบระดับชาติ อยู่ระหว่างถูกรวมเข้า DHSC','National budget holder, being folded into DHSC']),
+  n('icb','policy','pub',['ICB 42 แห่ง','42 ICBs'],['Integrated Care Boards ซื้อบริการระดับพื้นที่','Integrated Care Boards commission local care']),
+  n('nice','policy','pub',['NICE','NICE'],['ประเมินความคุ้มค่า ตัดสินยาและแนวทางรักษา','Cost-effectiveness and clinical guidance']),
+  n('cqc','policy','pub',['CQC','CQC'],['ตรวจและให้คะแนนคุณภาพสถานพยาบาล','Inspects and rates providers']),
+  n('la','policy','pub',['ท้องถิ่น','Local authorities'],['ดูแลบริการสังคมและผู้สูงอายุ (คัดกรองรายได้)','Run means-tested social care']),
+  n('trust','provider','pub',['NHS Trusts','NHS Trusts'],['โรงพยาบาลรัฐ ทุติยภูมิและตติยภูมิ','Public hospitals, secondary and tertiary'],1),
+  n('gp','provider','pvt',['GP','GP practices'],['คลินิกแพทย์ทั่วไป ผู้รับสัญญาอิสระ เป็นด่านแรก','Independent GP practices, the gatekeepers'],1),
+  n('pharm','provider','pvt',['ร้านยาชุมชน','Community pharmacy'],['Pharmacy First รักษาโรคเล็กน้อย','Pharmacy First minor-illness service']),
+  n('pmi','provider','pvt',['ประกัน/รพ.เอกชน','Private insurance & hospitals'],['ราว 1 ใน 10 มีประกันเอกชนเสริม','About 1 in 10 hold private cover']),
+  n('social','provider','pvt',['บริการดูแลระยะยาว','Care homes & home care'],['ส่วนใหญ่เป็นเอกชน ท้องถิ่นซื้อบริการ','Mostly private, bought by councils']),
+  n('people','people','comm',['ประชาชน','People'],['ลงทะเบียนกับ GP ไม่ต้องจ่าย ณ จุดบริการ','Register with a GP; free at the point of use'],1)],
+  E:e('people>treasury:fund treasury>dhsc:fund dhsc>nhse:fund nhse>icb:fund icb>trust:fund icb>gp:fund icb>pharm:fund treasury>la:fund la>social:fund people>pmi:fund nice>icb:reg cqc>trust:reg cqc>gp:reg cqc>social:reg who>dhsc:tech dhsc>nice:tech people>gp:svc gp>trust:svc people>pharm:svc social>people:svc pmi>trust:svc')}},
+{code:'DE',name:['เยอรมนี','Germany'],model:['ประกันสังคมภาคบังคับ แบบ Bismarck (2426)','Statutory social insurance, Bismarck model (1883)'],
+ q:['ทำอย่างไรให้แรงงานในยุคอุตสาหกรรมมั่นคงเมื่อเจ็บป่วย โดยให้นายจ้างและลูกจ้างร่วมกันรับผิดชอบ','How can industrial workers be secure when ill, with employers and employees sharing the cost?'],
+ found:['กฎหมายประกันสุขภาพของ Bismarck 2426 ระบบประกันสังคมแห่งแรกของโลก','Bismarck\'s 1883 Health Insurance Act, the first social insurance law'],
+ fin:['เงินสมทบจากค่าจ้างราว 14.6% บวกเงินเพิ่ม แบ่งจ่ายนายจ้างกับลูกจ้าง','Payroll contributions of ~14.6% plus add-ons, split employer/employee'],
+ payer:['กองทุนตามกฎหมายราว 95 กองทุนแข่งกัน ผู้มีรายได้สูงเลือกประกันเอกชนแทนได้','~95 competing statutory sickness funds; high earners may opt for private cover'],
+ prov:['ผสมรัฐ ไม่แสวงกำไร และเอกชน แพทย์นอก รพ.เป็นเอกชน','Mix of public, non-profit and private hospitals; office doctors are private'],
+ access:['เลือกแพทย์เฉพาะทางเองได้ ไม่บังคับด่านแรก','Free choice of specialists, no mandatory gatekeeping'],
+ str:['เข้าถึงเร็ว ทางเลือกมาก ชุดสิทธิกว้างตัดสินโดยกรรมการร่วม G-BA','Fast access, wide choice, broad benefits set by the joint committee G-BA'],
+ weak:['ค่าใช้จ่ายสูง ระบบแยกส่วน ใช้เตียงผู้ป่วยในมาก','High cost, fragmentation, heavy hospital-bed use'],
+ lesson:['ประกันสังคมของไทยมีรากจากแนวคิดนี้ ประกันดูแลระยะยาวแยกของเยอรมนี (2538) เป็นตัวอย่างที่ไทยใช้ได้','Thai social security follows this idea; Germany\'s separate long-term care insurance (1995) is a useful reference'],
+ stats:['~12.7%','~12%','~81'],axes:[55,80,55,85],
+ graph:{N:[
+  n('who','global','intl',['WHO / ยุโรป','WHO / Europe'],['เยอรมนีเป็นผู้ให้ทุนรายใหญ่ของ WHO','A major WHO funder'],1),
+  n('bmg','policy','pub',['กระทรวงสาธารณสุข (BMG)','Health ministry (BMG)'],['ออกกฎหมาย กำกับภาพรวม อุดหนุนกองทุนกลาง','Legislates, oversees, subsidises the central fund'],1),
+  n('fonds','policy','pub',['กองทุนกลาง','Central health fund'],['Gesundheitsfonds รวมเงินสมทบแล้วจัดสรรตามความเสี่ยง','Pools contributions and reallocates by risk']),
+  n('gkv','policy','pub',['กองทุนประกัน ~95 แห่ง','~95 sickness funds'],['ครอบคลุมราว 88% ของประชากร','Cover ~88% of the population'],1),
+  n('pkv','policy','pvt',['ประกันเอกชนทดแทน','Substitutive private insurance'],['ราว 10% ส่วนใหญ่รายได้สูงและข้าราชการ','~10%, mainly high earners and civil servants']),
+  n('gba','policy','pub',['G-BA','G-BA'],['คณะกรรมการร่วม แพทย์ กองทุน โรงพยาบาล ตัดสินชุดสิทธิ','Joint committee of doctors, funds, hospitals; sets benefits']),
+  n('iqwig','policy','pub',['IQWiG','IQWiG'],['สถาบัน HTA ให้ข้อมูลแก่ G-BA','HTA institute advising G-BA']),
+  n('kv','policy','pub',['สมาคมแพทย์ประกัน (KV)','Physicians\' associations (KV)'],['รับเงินจากกองทุนแล้วจ่ายแพทย์นอก รพ.','Receive fund payments and pay office doctors']),
+  n('ltci','policy','pub',['ประกันดูแลระยะยาว','Long-term care insurance'],['เสาหลักแยกตั้งแต่ 2538','Separate pillar since 1995']),
+  n('amb','provider','pvt',['แพทย์คลินิกเอกชน','Office-based doctors'],['GP และแพทย์เฉพาะทางนอกโรงพยาบาล','GPs and specialists outside hospitals'],1),
+  n('hosp','provider','pub',['โรงพยาบาล','Hospitals'],['รัฐ ไม่แสวงกำไร และเอกชน ได้ค่าตอบแทนแบบ DRG','Public, non-profit and private; paid by DRG'],1),
+  n('pharm','provider','pvt',['ร้านยา','Pharmacies'],['จ่ายยาตามใบสั่ง','Dispense prescriptions']),
+  n('care','provider','pvt',['ผู้ให้บริการดูแล','Care providers'],['ดูแลที่บ้านและสถานดูแล','Home and residential care']),
+  n('people','people','comm',['ประชาชน','People'],['เลือกกองทุนได้เอง','Choose their own sickness fund'],1),
+  n('employer','people','comm',['นายจ้าง','Employers'],['จ่ายเงินสมทบครึ่งหนึ่ง','Pay half the contribution'])],
+  E:e('people>fonds:fund employer>fonds:fund bmg>fonds:fund fonds>gkv:fund gkv>kv:fund kv>amb:fund gkv>hosp:fund gkv>pharm:fund people>pkv:fund pkv>amb:fund pkv>hosp:fund people>ltci:fund employer>ltci:fund ltci>care:fund bmg>gba:reg gba>gkv:reg iqwig>gba:tech who>bmg:tech people>amb:svc amb>hosp:svc care>people:svc')}},
+{code:'JP',name:['ญี่ปุ่น','Japan'],model:['ประกันสังคมถ้วนหน้า + ตารางราคากลาง (2504)','Universal social insurance with one fee schedule (1961)'],
+ q:['ทำอย่างไรให้ทุกคน ทั้งลูกจ้างและผู้ไม่มีนายจ้าง อยู่ในประกันใดประกันหนึ่ง และใช้ราคาเดียวกันทั้งประเทศ','How can everyone, employed or not, belong to some insurance plan under one national price list?'],
+ found:['ประกันถ้วนหน้า 2504 เพิ่มประกันดูแลระยะยาว (LTCI) ปี 2543 รับสังคมสูงวัย','Universal coverage in 1961; long-term care insurance added in 2000'],
+ fin:['เบี้ยประกัน + ภาษีอุดหนุน ผู้ป่วยร่วมจ่าย 10–30%','Premiums plus tax subsidies; patients co-pay 10–30%'],
+ payer:['ประกันกว่า 3,000 แห่งตามที่ทำงานหรือที่อยู่ แต่จ่ายตามตารางราคาเดียวกัน','3,000+ insurers by employer or residence, all on one fee schedule'],
+ prov:['รพ.และคลินิกเอกชนไม่แสวงกำไรเป็นส่วนใหญ่','Mostly private non-profit hospitals and clinics'],
+ access:['เลือกสถานพยาบาลได้อิสระ อัตราการพบแพทย์สูงที่สุดกลุ่มหนึ่งของโลก','Free choice of provider; among the highest visit rates in the world'],
+ str:['อายุคาดเฉลี่ยสูงสุดกลุ่มหนึ่งของโลก คุมราคาด้วยตารางกลาง ระบบดูแลระยะยาวครบ','Among the longest life expectancies; price control via the fee schedule; mature long-term care'],
+ weak:['ภาระการคลังจากผู้สูงอายุ นอนโรงพยาบาลนาน','Fiscal pressure from ageing; long hospital stays'],
+ lesson:['ไทยแก่เร็วกว่าที่ญี่ปุ่นเคยเป็น ประกันดูแลระยะยาวและบทบาทเทศบาลของญี่ปุ่นเป็นตัวอย่างโดยตรง','Thailand is ageing faster than Japan did; Japan\'s LTCI and municipal role are direct models'],
+ stats:['~11%','~12%','~84'],axes:[50,85,75,90],
+ graph:{N:[
+  n('who','global','intl',['WHO / WPRO','WHO / WPRO'],['สมาชิก WHO ภูมิภาคแปซิฟิกตะวันตก','Member of the WHO Western Pacific region'],1),
+  n('jica','global','intl',['JICA','JICA'],['ช่วยเหลือด้าน UHC ในต่างประเทศ รวมถึงไทย','Supports UHC abroad, including Thailand']),
+  n('mhlw','policy','pub',['กระทรวงสาธารณสุข (MHLW)','MHLW'],['กำหนดนโยบายและตารางราคากลาง','Sets policy and the national fee schedule'],1),
+  n('chuikyo','policy','pub',['Chuikyo','Chuikyo'],['คณะกรรมการกำหนดราคาค่าบริการทุก 2 ปี','Council that revises fees every two years']),
+  n('kenpo','policy','pub',['ประกันของนายจ้าง','Employer plans'],['สมาคมประกันสุขภาพของบริษัทและ Kyokai Kenpo','Company health societies and Kyokai Kenpo']),
+  n('nhi','policy','pub',['ประกันของเทศบาล','Municipal NHI'],['ผู้ประกอบอาชีพอิสระ ผู้ว่างงาน','Self-employed and unemployed']),
+  n('elder','policy','pub',['ระบบผู้สูงอายุ 75+','Late-elderly system (75+)'],['รวมระดับจังหวัด รัฐอุดหนุนสูง','Prefecture-wide pools, heavily subsidised']),
+  n('ltci','policy','pub',['ประกันดูแลระยะยาว','LTCI'],['เทศบาลเป็นผู้ประกัน ทุกคนอายุ 40+ จ่ายเบี้ย','Run by municipalities; everyone 40+ pays premiums'],1),
+  n('clinic','provider','pvt',['คลินิกเอกชน','Private clinics'],['แพทย์เป็นเจ้าของ เปิดใกล้บ้าน','Doctor-owned, close to home'],1),
+  n('hosp','provider','pvt',['รพ.เอกชนไม่แสวงกำไร','Private non-profit hospitals'],['ราว 70% ของโรงพยาบาล','About 70% of hospitals']),
+  n('pubhosp','provider','pub',['รพ.รัฐ / มหาวิทยาลัย','Public & university hospitals'],['ตติยภูมิ วิจัย','Tertiary care and research']),
+  n('care','provider','pvt',['ผู้ให้บริการดูแล','Care services'],['ดูแลที่บ้าน ศูนย์ดูแลกลางวัน สถานดูแล','Home, day and residential care']),
+  n('pharm','provider','pvt',['ร้านยา','Pharmacies'],['จ่ายยาแยกจากแพทย์','Separate dispensing']),
+  n('people','people','comm',['ประชาชน','People'],['ทุกคนต้องมีประกัน ร่วมจ่ายตามอายุ','Must be insured; co-pay by age'],1),
+  n('employer','people','comm',['นายจ้าง','Employers'],['ร่วมจ่ายเบี้ย','Share premiums'])],
+  E:e('people>kenpo:fund employer>kenpo:fund people>nhi:fund mhlw>nhi:fund mhlw>elder:fund kenpo>elder:fund people>ltci:fund ltci>care:fund kenpo>clinic:fund kenpo>hosp:fund nhi>clinic:fund nhi>hosp:fund elder>hosp:fund kenpo>pharm:fund chuikyo>kenpo:reg chuikyo>nhi:reg mhlw>chuikyo:reg mhlw>hosp:reg who>mhlw:tech mhlw>jica:tech people>clinic:svc people>hosp:svc clinic>pubhosp:svc care>people:svc people>pharm:svc')}},
+{code:'SG',name:['สิงคโปร์','Singapore'],model:['บัญชีออม + ประกันภัยพิบัติ + ตาข่ายนิรภัย (3M)','Savings + catastrophic insurance + safety net (3Ms)'],
+ q:['ทำอย่างไรให้แต่ละคนรับผิดชอบสุขภาพตนเอง โดยรัฐยังรับประกันว่าไม่มีใครถูกปฏิเสธการรักษา','How can individuals take responsibility for their care while the state guarantees no one is turned away?'],
+ found:['MediSave 2527, MediShield 2533, MediFund 2536 ต่อยอดจาก CPF; Healthier SG 2566 ให้ทุกคนมีแพทย์ประจำครอบครัว','MediSave 1984, MediShield 1990, MediFund 1993 on top of the CPF; Healthier SG (2023) gives everyone a family doctor'],
+ fin:['เงินออมภาคบังคับในบัญชีส่วนตัว + ภาษีอุดหนุนตามรายได้ + จ่ายเอง','Compulsory personal savings, means-tested subsidies, out-of-pocket'],
+ payer:['รัฐกำหนดกติกากลาง MediShield Life คุ้มครองทุกคน ประกันเอกชนเสริมได้','State sets the rules; MediShield Life covers all; private plans top up'],
+ prov:['รพ.รัฐ 3 คลัสเตอร์ดูแลผู้ป่วยในส่วนใหญ่ ปฐมภูมิเป็น GP เอกชนราว 80%','Three public clusters provide most hospital care; ~80% of primary care is private GPs'],
+ access:['ใช้เงินในบัญชีของตน ห้องพักแบ่งระดับ ห้องดีขึ้นได้อุดหนุนน้อยลง','Patients draw on their own accounts; ward classes get less subsidy as comfort rises'],
+ str:['ใช้จ่ายรวมต่ำแต่ผลลัพธ์ดี ประชาชนตระหนักต้นทุน','Low total spending with strong outcomes; cost-aware patients'],
+ weak:['สัดส่วนจ่ายเองสูง เป็นภาระผู้มีรายได้น้อยและผู้สูงอายุ','High out-of-pocket share; burden on low-income and older people'],
+ lesson:['บัญชีออมใช้กับไทยยากเพราะแรงงานนอกระบบมาก แต่ Healthier SG สอดคล้องกับนโยบายหมอครอบครัวของไทย','Savings accounts fit Thailand poorly given its large informal workforce, but Healthier SG matches the Thai family-doctor policy'],
+ stats:['~5.5%','~20%','~83'],axes:[60,50,35,50],
+ graph:{N:[
+  n('who','global','intl',['WHO / WPRO','WHO / WPRO'],['สมาชิก WHO ภูมิภาคแปซิฟิกตะวันตก','Member of the WHO Western Pacific region'],1),
+  n('moh','policy','pub',['กระทรวงสาธารณสุข','Ministry of Health'],['กำหนดอุดหนุน ราคา และจำนวนเตียง','Sets subsidies, prices and bed supply'],1),
+  n('cpf','policy','pub',['CPF','CPF'],['กองทุนสำรองเลี้ยงชีพกลาง รับเงินสมทบจากค่าจ้าง','Central Provident Fund; payroll savings']),
+  n('medisave','policy','pub',['MediSave','MediSave'],['บัญชีออมสุขภาพส่วนบุคคล','Personal health savings account'],1),
+  n('shield','policy','pub',['MediShield Life','MediShield Life'],['ประกันค่ารักษาก้อนใหญ่ ภาคบังคับตลอดชีพ','Mandatory lifelong catastrophic insurance']),
+  n('medifund','policy','pub',['MediFund','MediFund'],['กองทุนช่วยผู้ที่จ่ายไม่ไหว','Endowment fund for those who cannot pay']),
+  n('ace','policy','pub',['ACE (HTA)','ACE (HTA)'],['ประเมินความคุ้มค่ายาและเทคโนโลยี','Assesses drugs and technologies']),
+  n('cluster','provider','pub',['รพ.รัฐ 3 คลัสเตอร์','Three public clusters'],['ดูแลผู้ป่วยในราว 80%','~80% of acute beds'],1),
+  n('poly','provider','pub',['โพลีคลินิก','Polyclinics'],['ปฐมภูมิของรัฐ ราว 20%','Public primary care, ~20%']),
+  n('gp','provider','pvt',['GP เอกชน','Private GPs'],['ปฐมภูมิราว 80% เข้าร่วม Healthier SG','~80% of primary care; part of Healthier SG']),
+  n('privhosp','provider','pvt',['รพ.เอกชน','Private hospitals'],['รับผู้ป่วยต่างชาติด้วย','Also serve medical tourists']),
+  n('isp','provider','pvt',['ประกันเอกชนเสริม','Integrated Shield plans'],['ต่อยอดจาก MediShield Life','Top-ups on MediShield Life']),
+  n('people','people','comm',['ประชาชน','People'],['รับผิดชอบส่วนหนึ่งเองผ่านบัญชีออม','Pay part of costs from their accounts'],1),
+  n('employer','people','comm',['นายจ้าง','Employers'],['สมทบ CPF','Contribute to CPF'])],
+  E:e('people>cpf:fund employer>cpf:fund cpf>medisave:fund medisave>shield:fund medisave>cluster:fund medisave>privhosp:fund shield>cluster:fund moh>cluster:fund moh>poly:fund moh>gp:fund moh>medifund:fund medifund>cluster:fund people>isp:fund isp>privhosp:fund moh>shield:reg moh>privhosp:reg ace>moh:tech who>moh:tech people>gp:svc people>poly:svc gp>cluster:svc poly>cluster:svc')}},
+{code:'TW',name:['ไต้หวัน','Taiwan'],model:['ประกันสุขภาพแห่งชาติ ผู้จ่ายเดียว (2538)','Single-payer National Health Insurance (1995)'],
+ q:['ทำอย่างไรให้ประกันกว่าสิบแบบที่คุ้มครองแค่ครึ่งประเทศ รวมเป็นระบบเดียวที่ครอบคลุมทุกคนในทันที','How can a dozen fragmented schemes covering half the population merge into one plan for everyone at once?'],
+ found:['ศึกษาระบบหลายประเทศแล้วเปิด NHI ปี 2538 ครอบคลุมเกิน 99% ในไม่กี่ปี','Studied many countries, launched NHI in 1995, reached 99%+ coverage within a few years'],
+ fin:['เบี้ยประกันจากค่าจ้าง นายจ้าง และรัฐ บวกเบี้ยเสริม','Payroll premiums from workers, employers and government, plus a supplementary premium'],
+ payer:['ผู้จ่ายเดียว (NHIA) ภายใต้งบรวมรายปี','Single payer (NHIA) under an annual global budget'],
+ prov:['รพ.และคลินิกเอกชนเป็นส่วนใหญ่','Mostly private hospitals and clinics'],
+ access:['เลือกได้อิสระ บัตร IC และ MediCloud เห็นประวัติยาข้ามโรงพยาบาล','Free choice; IC card and MediCloud share medication history across providers'],
+ str:['ค่าบริหารต่ำมาก ข้อมูลดิจิทัลรวมศูนย์ ประชาชนพึงพอใจสูง','Very low admin cost, unified digital data, high satisfaction'],
+ weak:['เวลาพบแพทย์สั้น ค่าตอบแทนแพทย์ต่ำ การเงินตึงตัว ไม่ได้เป็นสมาชิก WHO','Short consultations, low provider fees, financial strain; not a WHO member'],
+ lesson:['บัตร IC และ MediCloud เป็นต้นแบบของระบบข้อมูลสุขภาพเชื่อมต่อที่ไทยกำลังทำ','IC card and MediCloud are a model for Thailand\'s connected health data'],
+ stats:['~7%','~30%','~80'],axes:[50,5,85,95],
+ graph:{N:[
+  n('who','global','intl',['WHO (ไม่ได้เป็นสมาชิก)','WHO (not a member)'],['เข้าถึงเครือข่าย WHO ได้จำกัด','Limited access to WHO networks'],1),
+  n('mohw','policy','pub',['กระทรวงสาธารณสุข (MOHW)','MOHW'],['นโยบายและกำกับ','Policy and oversight'],1),
+  n('nhia','policy','pub',['NHIA','NHIA'],['ผู้จ่ายเดียวของประเทศ','The single national payer'],1),
+  n('gb','policy','pub',['คณะกรรมการงบรวม','Global budget committee'],['กำหนดเพดานงบรายปีแยกตามภาคบริการ','Sets annual sector budget caps']),
+  n('cloud','policy','pub',['บัตร IC / MediCloud','IC card / MediCloud'],['ข้อมูลการรักษาและยาเชื่อมทุกสถานพยาบาล','Shared records and prescriptions']),
+  n('cdc','policy','pub',['Taiwan CDC','Taiwan CDC'],['ควบคุมโรค','Disease control']),
+  n('center','provider','pvt',['ศูนย์การแพทย์','Medical centres'],['ตติยภูมิ ทั้งรัฐและเอกชน','Tertiary, public and private'],1),
+  n('regional','provider','pvt',['รพ.ภูมิภาค/ท้องถิ่น','Regional & district hospitals'],['ทุติยภูมิ','Secondary care']),
+  n('clinic','provider','pvt',['คลินิกเอกชน','Private clinics'],['ปฐมภูมิจำนวนมาก','Abundant primary care']),
+  n('pharm','provider','pvt',['ร้านยา','Pharmacies'],['จ่ายยาตามใบสั่ง','Dispense prescriptions']),
+  n('people','people','comm',['ประชาชน','People'],['ใช้บัตร IC ใบเดียวทุกที่','One IC card everywhere'],1),
+  n('employer','people','comm',['นายจ้าง','Employers'],['ร่วมจ่ายเบี้ย','Share premiums'])],
+  E:e('people>nhia:fund employer>nhia:fund mohw>nhia:fund nhia>center:fund nhia>regional:fund nhia>clinic:fund nhia>pharm:fund gb>nhia:reg mohw>gb:reg mohw>center:reg nhia>cloud:tech cloud>clinic:tech cloud>center:tech cdc>mohw:tech who>cdc:tech people>clinic:svc people>center:svc clinic>regional:svc regional>center:svc')}},
+{code:'US',name:['สหรัฐอเมริกา','United States'],model:['ระบบผสมตามกลไกตลาด','Market-based mixed system'],
+ q:['ไม่มีโจทย์เดียว เน้นเสรีภาพในการเลือกและกลไกตลาด รัฐคุ้มครองเฉพาะกลุ่ม เช่น ผู้สูงอายุ ผู้มีรายได้น้อย ทหารผ่านศึก','No single founding question: choice and markets first, with the state covering specific groups such as the elderly, the poor and veterans'],
+ found:['ประกันผ่านนายจ้างหลังสงครามโลก Medicare/Medicaid 2508 และ Affordable Care Act 2553','Employer insurance after WWII, Medicare and Medicaid in 1965, the Affordable Care Act in 2010'],
+ fin:['เบี้ยประกันเอกชน + ภาษี + จ่ายเอง','Private premiums, taxes and out-of-pocket'],
+ payer:['ผู้จ่ายหลายพันราย ทั้งบริษัทประกัน Medicare Medicaid และ VA','Thousands of payers: insurers, Medicare, Medicaid, VA'],
+ prov:['เอกชนเป็นหลัก ทั้งไม่แสวงกำไรและแสวงกำไร','Mostly private, non-profit and for-profit'],
+ access:['ขึ้นกับแผนประกัน บางแผนต้องผ่าน gatekeeper','Depends on the plan; some require a gatekeeper'],
+ str:['นวัตกรรมและงานวิจัยระดับโลก คุณภาพสูงในศูนย์ชั้นนำ','World-leading innovation and research; top specialist centres'],
+ weak:['ใช้จ่ายสูงที่สุดในโลก ไม่มีประกันราว 8% หนี้ค่ารักษา','Highest spending in the world, ~8% uninsured, medical debt'],
+ lesson:['ไทยควรระวังการเติบโตของประกันเอกชนที่แยกกลุ่มคนและดันต้นทุนขึ้น','Thailand should watch private-insurance growth that segments people and pushes costs up'],
+ stats:['~17%','~11%','~77'],axes:[75,100,80,70],
+ graph:{N:[
+  n('who','global','intl',['WHO (ถอนตัว 2569)','WHO (withdrew 2026)'],['ถอนตัวมีผล ม.ค. 2569','Withdrawal took effect Jan 2026'],1),
+  n('hhs','policy','pub',['HHS','HHS'],['กระทรวงสาธารณสุขและบริการมนุษย์','Dept. of Health and Human Services'],1),
+  n('cms','policy','pub',['Medicare / Medicaid (CMS)','Medicare / Medicaid (CMS)'],['Medicare ผู้สูงอายุ 65+ Medicaid ผู้มีรายได้น้อยร่วมกับรัฐ','Medicare for 65+, Medicaid for low-income with states'],1),
+  n('states','policy','pub',['รัฐบาลมลรัฐ','State governments'],['ร่วมจ่าย Medicaid กำกับประกันในรัฐ','Co-fund Medicaid; regulate insurers']),
+  n('fda','policy','pub',['FDA','FDA'],['อนุมัติยาและเครื่องมือแพทย์','Approves drugs and devices']),
+  n('cdc','policy','pub',['CDC','CDC'],['ควบคุมโรค','Disease control']),
+  n('ins','policy','pvt',['บริษัทประกัน','Private insurers'],['ผู้จ่ายหลักของคนทำงาน','Main payer for working-age people'],1),
+  n('aca','policy','pub',['ตลาดประกัน ACA','ACA marketplaces'],['ซื้อประกันพร้อมเงินอุดหนุน','Subsidised individual insurance']),
+  n('hosp','provider','pvt',['โรงพยาบาล','Hospitals'],['ไม่แสวงกำไรเป็นส่วนใหญ่','Mostly non-profit'],1),
+  n('doc','provider','pvt',['แพทย์และกลุ่มแพทย์','Physician groups'],['คิดค่าบริการรายครั้งหรือตามคุณค่า','Fee-for-service or value-based']),
+  n('va','provider','pub',['VA','Veterans Health'],['ระบบรัฐสำหรับทหารผ่านศึก','Public system for veterans']),
+  n('chc','provider','pub',['ศูนย์สุขภาพชุมชน','Community health centres'],['ปฐมภูมิสำหรับผู้มีรายได้น้อย','Primary care for low-income']),
+  n('pharm','provider','pvt',['ร้านยา / PBM','Pharmacies / PBMs'],['ตัวกลางต่อรองราคายา','Drug price intermediaries']),
+  n('people','people','comm',['ประชาชน','People'],['ราว 8% ไม่มีประกัน','~8% uninsured'],1),
+  n('employer','people','comm',['นายจ้าง','Employers'],['ซื้อประกันกลุ่มให้ลูกจ้าง','Buy group insurance'])],
+  E:e('people>ins:fund employer>ins:fund people>aca:fund hhs>cms:fund hhs>aca:fund states>cms:fund cms>hosp:fund cms>doc:fund cms>chc:fund ins>hosp:fund ins>doc:fund ins>pharm:fund aca>ins:fund hhs>va:fund fda>pharm:reg states>ins:reg cms>hosp:reg hhs>fda:reg hhs>cdc:tech cdc>who:tech people>doc:svc people>chc:svc people>va:svc doc>hosp:svc people>pharm:svc')}},
+{code:'CA',name:['แคนาดา','Canada'],model:['ประกันรัฐระดับมณฑล ผู้จ่ายเดียว (2509/2527)','Provincial single-payer Medicare (1966/1984)'],
+ q:['ทำอย่างไรไม่ให้ใครล้มละลายเพราะค่าหมอและค่าโรงพยาบาล โดยแพทย์ยังเป็นเอกชน','How can no one be bankrupted by doctor and hospital bills, while doctors stay private?'],
+ found:['เริ่มที่ซัสแคตเชวัน 2505 ตามด้วย Medical Care Act 2509 และ Canada Health Act 2527','Began in Saskatchewan in 1962, then the Medical Care Act 1966 and the Canada Health Act 1984'],
+ fin:['ภาษีของรัฐบาลกลางและมณฑล','Federal and provincial taxes'],
+ payer:['แต่ละมณฑลเป็นผู้จ่ายเดียวสำหรับแพทย์และโรงพยาบาล ยานอก รพ.และทันตกรรมยังพึ่งประกันเอกชน','Each province is the single payer for doctors and hospitals; outpatient drugs and dental lean on private insurance'],
+ prov:['แพทย์เอกชนเรียกเก็บจากมณฑล โรงพยาบาลไม่แสวงกำไรได้งบรวม','Private physicians bill the province; non-profit hospitals get global budgets'],
+ access:['แพทย์ครอบครัวเป็นด่านแรก','Family doctors are gatekeepers'],
+ str:['เท่าเทียมสูง ไม่ต้องจ่าย ณ จุดบริการ ค่าบริหารต่ำ','High equity, free at the point of care, low admin cost'],
+ weak:['รอคิวนาน ขาดแพทย์ครอบครัว ยาและทันตกรรมยังไม่ครอบคลุมทั้งหมด','Long waits, family-doctor shortage, incomplete drug and dental coverage'],
+ lesson:['แคนาดาครอบคลุมแคบแต่ลึก ไทยได้เปรียบที่บัตรทองรวมยาด้วย','Canada covers a narrow but deep package; Thailand\'s inclusion of medicines is an advantage'],
+ stats:['~11.5%','~14%','~82'],axes:[10,15,70,20],
+ graph:{N:[
+  n('who','global','intl',['WHO / PAHO','WHO / PAHO'],['สมาชิก WHO ภูมิภาคอเมริกา','Member of the WHO Americas region'],1),
+  n('fed','policy','pub',['รัฐบาลกลาง / Health Canada','Federal govt / Health Canada'],['โอนงบ Canada Health Transfer และกำกับยา','Canada Health Transfer; drug regulation'],1),
+  n('prov','policy','pub',['แผนประกันของมณฑล','Provincial health plans'],['ผู้จ่ายเดียวในแต่ละมณฑล','Single payer in each province'],1),
+  n('cda','policy','pub',['CDA-AMC (HTA)','CDA-AMC (HTA)'],['ประเมินยาและเทคโนโลยี','Assesses drugs and technologies']),
+  n('phac','policy','pub',['PHAC','PHAC'],['สำนักงานสาธารณสุขควบคุมโรค','Public Health Agency of Canada']),
+  n('privins','policy','pvt',['ประกันเอกชนเสริม','Supplementary insurance'],['ยานอก รพ. ทันตกรรม สายตา','Drugs, dental, vision']),
+  n('fp','provider','pvt',['แพทย์ครอบครัว','Family physicians'],['เอกชน เรียกเก็บจากมณฑล','Private, bill the province'],1),
+  n('hosp','provider','pub',['โรงพยาบาล','Hospitals'],['ไม่แสวงกำไร ได้งบรวม','Non-profit, global budgets'],1),
+  n('pharm','provider','pvt',['ร้านยา','Pharmacies'],['ยานอก รพ.','Outpatient drugs']),
+  n('people','people','comm',['ประชาชน','People'],['ไม่ต้องจ่ายค่าแพทย์และ รพ.','No charges for doctors or hospitals'],1),
+  n('employer','people','comm',['นายจ้าง','Employers'],['ซื้อประกันเสริมให้ลูกจ้าง','Buy supplementary cover'])],
+  E:e('people>fed:fund people>prov:fund fed>prov:fund prov>fp:fund prov>hosp:fund prov>pharm:fund employer>privins:fund people>privins:fund privins>pharm:fund fed>prov:reg fed>pharm:reg cda>prov:tech phac>who:tech fed>phac:tech people>fp:svc fp>hosp:svc people>pharm:svc')}}
+];
+const byCode=Object.fromEntries(COUNTRIES.map(c=>[c.code,c]));
+
+/* ================= Static text ================= */
+function renderStatic(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll('[data-t]').forEach(el=>{el.textContent=t(STR[el.dataset.t]);});
+  document.title=lang==='en'?'Thai Health System Map':'แผนที่ระบบสุขภาพไทย';
+  document.getElementById('lang-th').setAttribute('aria-pressed',String(lang==='th'));
+  document.getElementById('lang-en').setAttribute('aria-pressed',String(lang==='en'));
+}
+
+/* ================= Actors (from Thai graph) ================= */
+const GROUPS=[['reg',['รัฐ: นโยบายและกำกับ','Public: policy & regulation'],'--public'],['pay',['รัฐ: ผู้จ่ายเงินและการคลัง','Public: payers & financing'],'--public'],['pubprov',['รัฐ: ผู้ให้บริการ','Public: providers'],'--public'],['pvt',['เอกชน','Private'],'--private'],['comm',['ประชาชนและชุมชน','People & community'],'--people'],['intl',['นานาชาติ','International'],'--global']];
+function renderActors(){
+  document.getElementById('actors').innerHTML=GROUPS.map(([k,name,c])=>`<div class="group"><div class="gh"><span class="dot" style="background:var(${c})"></span><h3>${t(name)}</h3></div><ul>`+
+   TH_N.filter(x=>x.group===k).map(x=>`<li><b>${t(x.label)}</b> <span class="muted">${t(x.desc)}</span></li>`).join('')+'</ul></div>').join('');
+}
+
+/* ================= Care tables ================= */
+const CARE1={lvl:true,h:[['ระดับ','Level'],['หน่วยบริการรัฐ','Public providers'],['หน่วยบริการเอกชน','Private providers'],['ตัวอย่างบริการ','Example services']],rows:[
+ [['ชุมชน / ดูแลตนเอง','Community / self-care'],['อสม., ศูนย์ดูแลผู้สูงอายุในชุมชน','Village volunteers, community elder care'],['ร้านยา','Pharmacies'],['คัดกรองความดัน เบาหวาน เยี่ยมบ้าน','BP and diabetes screening, home visits']],
+ [['ปฐมภูมิ','Primary'],['รพ.สต., ทีมหมอครอบครัว','Health centres, family-doctor teams'],['คลินิกชุมชนอบอุ่น, คลินิกเวชกรรม','Community warm-care clinics, GP clinics'],['โรคทั่วไป วัคซีน ฝากครรภ์ โรคเรื้อรังคงที่','Common illness, vaccines, antenatal care, stable chronic disease']],
+ [['ทุติยภูมิ','Secondary'],['รพ.ชุมชน, รพ.ทั่วไป','Community and general hospitals'],['รพ.เอกชนทั่วไป','General private hospitals'],['ผู้ป่วยใน ผ่าตัดทั่วไป คลอด','Inpatient care, general surgery, deliveries']],
+ [['ตติยภูมิ','Tertiary'],['รพ.ศูนย์, รพ.มหาวิทยาลัย','Regional and university hospitals'],['รพ.เอกชนขนาดใหญ่','Large private hospitals'],['มะเร็ง หัวใจ ปลูกถ่ายอวัยวะ ICU','Cancer, cardiac, transplants, ICU']],
+ [['ตติยภูมิขั้นสูง','Excellence centres'],['ศูนย์ความเป็นเลิศ, สถาบันเฉพาะทาง','Centres of excellence, specialist institutes'],['ศูนย์เฉพาะทางเอกชน','Private specialist centres'],['ผ่าตัดสมอง ทารกวิกฤต รังสีรักษาขั้นสูง','Neurosurgery, neonatal ICU, advanced radiotherapy']],
+ [['ข้ามระดับ','Cross-cutting'],['สพฉ. 1669, รพ.จิตเวช, แพทย์แผนไทย','NIEMS 1669, psychiatric hospitals, Thai traditional medicine'],['รถพยาบาลเอกชน, Telemedicine','Private ambulances, telemedicine'],['ฉุกเฉิน สุขภาพจิต ฟื้นฟู ดูแลระยะยาว ประคับประคอง','Emergency, mental health, rehab, long-term and palliative care']]]};
+const CARE2={h:[['หน้าที่','Function'],['ความหมาย','Meaning'],['ผู้รับผิดชอบหลัก','Lead agencies']],rows:[
+ [['สร้างเสริมสุขภาพ','Health promotion'],['ทำให้คนไม่ป่วย เช่น ลดบุหรี่ เหล้า','Keep people well, e.g. less tobacco and alcohol'],['กรมอนามัย, สสส., อปท.','Dept. of Health, ThaiHealth, local government']],
+ [['ป้องกันและควบคุมโรค','Prevention & control'],['วัคซีน คัดกรอง เฝ้าระวังโรคระบาด','Vaccines, screening, outbreak surveillance'],['กรมควบคุมโรค, สปสช. (กองทุน PP)','DDC, NHSO prevention fund']],
+ [['รักษาพยาบาล','Treatment'],['ผู้ป่วยนอก ผู้ป่วยใน ผ่าตัด ยา','Outpatient, inpatient, surgery, medicines'],['รพ.รัฐและเอกชน ผ่าน 3 กองทุน','Public and private hospitals via the three schemes']],
+ [['ฟื้นฟูสมรรถภาพ','Rehabilitation'],['กายภาพ หลังผ่าตัด อัมพาต','Physiotherapy, post-surgery, stroke'],['รพ., กองทุนฟื้นฟูระดับจังหวัด','Hospitals, provincial rehab funds']],
+ [['ดูแลระยะยาวและประคับประคอง','Long-term & palliative'],['ผู้สูงอายุติดเตียง ระยะท้ายของชีวิต','Bed-bound elderly, end of life'],['สปสช. (LTC), อปท., ครอบครัว','NHSO LTC, local government, families']],
+ [['คุ้มครองผู้บริโภค','Consumer protection'],['ความปลอดภัยของยา อาหาร สถานพยาบาล','Safety of drugs, food and facilities'],['อย., กรม สบส., สภาวิชาชีพ','Thai FDA, DHSS, professional councils']]]};
+const CARE3={num:2,h:[['สิทธิ','Scheme'],['หน่วยงาน','Agency'],['ผู้มีสิทธิ (ประมาณ)','Members (approx.)'],['วิธีจ่าย','Payment method']],rows:[
+ [['หลักประกันสุขภาพถ้วนหน้า (บัตรทอง)','Universal Coverage Scheme'],['สปสช.','NHSO'],['~47 ล้าน','~47 M'],['เหมาจ่ายรายหัว ผู้ป่วยในตาม DRG','Capitation; DRG for inpatients']],
+ [['ประกันสังคม','Social Security'],['สำนักงานประกันสังคม','SSO'],['~13 ล้าน','~13 M'],['เหมาจ่ายให้ รพ.คู่สัญญา','Capitation to contracted hospitals']],
+ [['สวัสดิการข้าราชการ','Civil Servant Scheme'],['กรมบัญชีกลาง','CGD'],['~5 ล้าน','~5 M'],['จ่ายตามรายการ ผู้ป่วยในตาม DRG','Fee-for-service; DRG for inpatients']],
+ [['พนักงานท้องถิ่น','Local government officers'],['อปท. (บริหารผ่าน สปสช.)','Local govt (managed by NHSO)'],['~0.7 ล้าน','~0.7 M'],['คล้ายสวัสดิการข้าราชการ','Similar to civil servant scheme']],
+ [['แรงงานข้ามชาติ','Migrant workers'],['สธ. (บัตรประกันสุขภาพ)','MOPH health card'],['หลายแสน–ล้าน','0.5–1 M+'],['ซื้อบัตรรายปี','Annual card purchase']],
+ [['ประกันเอกชนและจ่ายเอง','Private insurance & out of pocket'],['บริษัทประกัน, ผู้ป่วย','Insurers, patients'],['เสริมทุกสิทธิ','On top of any scheme'],['เบิกตามกรมธรรม์ มี Copayment บางกรณีตั้งแต่ 2568','Per policy; co-payment rules since 2025']]]};
+function tableHTML(d){return '<thead><tr>'+d.h.map(h=>`<th>${t(h)}</th>`).join('')+'</tr></thead><tbody>'+d.rows.map(r=>'<tr>'+r.map((c,i)=>`<td${d.num===i?' class="num"':''}>${i===0&&d.lvl?`<span class="lvl">${t(c)}</span>`:t(c)}</td>`).join('')+'</tr>').join('')+'</tbody>';}
+function renderCare(){document.getElementById('care1').innerHTML=tableHTML(CARE1);document.getElementById('care2').innerHTML=tableHTML(CARE2);document.getElementById('care3').innerHTML=tableHTML(CARE3);}
+
+/* ================= Compare ================= */
+const selA=document.getElementById('selA'), selB=document.getElementById('selB');
+let A='TH', B='JP';
+function renderCompare(){
+  [selA,selB].forEach((s,i)=>{s.innerHTML=COUNTRIES.map(c=>`<option value="${c.code}">${t(c.name)}</option>`).join('');s.value=i?B:A;});
+  const a=byCode[A], b=byCode[B], R=UI.rows;
+  let h=`<div class="k"></div><div class="h a">${t(a.name)}<small>${t(a.model)}</small></div><div class="h b">${t(b.name)}<small>${t(b.model)}</small></div>`;
+  ['q','found','fin','payer','prov','access','str','weak','lesson'].forEach(k=>{
+    h+=`<div class="k">${t(R[k])}</div><div class="a${k==='q'?' q':''}">${t(a[k])}</div><div class="b${k==='q'?' q':''}">${t(b[k])}</div>`;});
+  const st=c=>`<div class="stats"><span>${c.stats[0]}<small>${t(UI.che)}</small></span><span>${c.stats[1]}<small>${t(UI.oop)}</small></span><span>${c.stats[2]}<small>${t(UI.le)}</small></span></div>`;
+  h+=`<div class="k">${t(R.stats)}</div><div class="a">${st(a)}</div><div class="b">${st(b)}</div>`;
+  document.getElementById('cmp').innerHTML=h;
+  document.getElementById('axes').innerHTML=UI.axes.map((ax,i)=>{
+    const items=COUNTRIES.map(c=>({c,v:c.axes[i]})).sort((x,y)=>x.v-y.v);
+    const lanes=[];items.forEach(it=>{let l=0;while(lanes[l]!=null&&it.v-lanes[l]<9)l++;lanes[l]=it.v;it.l=l;});
+    const mk=items.map(it=>`<span class="mk ${it.c.code===A?'A':it.c.code===B?'B':''}" style="left:clamp(14px,${it.v}%,calc(100% - 14px));bottom:${4+it.l*20}px" title="${t(it.c.name)}">${it.c.code}</span>`).join('');
+    return `<div class="axis"><div class="ends"><span>← ${t(ax[0])}</span>${ax[1]?`<span>${t(ax[1])}</span>`:''}<span>${t(ax[2])} →</span></div><div class="track">${mk}</div></div>`;}).join('');
+  document.getElementById('ov').innerHTML='<thead><tr>'+UI.ov.map(x=>`<th>${t(x)}</th>`).join('')+'</tr></thead><tbody>'+
+   COUNTRIES.map(c=>`<tr><td><b>${t(c.name)}</b> <span class="muted">${c.code}</span></td><td>${t(c.model)}</td><td>${t(c.q)}</td><td class="num">${c.stats[0]}</td><td class="num">${c.stats[1]}</td><td class="num">${c.stats[2]}</td></tr>`).join('')+'</tbody>';
+}
+selA.onchange=()=>{A=selA.value;renderCompare();};
+selB.onchange=()=>{B=selB.value;renderCompare();};
+
+/* ================= Milestones ================= */
+const UL={3:['สูง','High'],2:['กลาง','Medium'],1:['ต่ำ','Low']};
+const M=[
+ {t:['บังคับใช้ข้อแก้ไข IHR ที่มีผล 19 ก.ย. 2568 ตั้ง National IHR Authority ปรับ พ.ร.บ.โรคติดต่อ','Implement the IHR amendments in force since 19 Sep 2025: National IHR Authority, update the Communicable Diseases Act'],s:'g',p:1,u:3,due:['2569–2570','2026–27'],o:['กรมควบคุมโรค, สธ.','DDC, MOPH'],n:['ทบทวนกฎหมายลูก ซ้อมแผนฉุกเฉิน รายงาน SPAR','Review regulations, run emergency drills, file SPAR report']},
+ {t:['ความตกลงว่าด้วยโรคระบาดของ WHO: ภาคผนวก PABS และการให้สัตยาบัน','WHO Pandemic Agreement: PABS annex and ratification'],s:'g',p:1,u:3,due:['2569–2570','2026–27'],o:['สธ., กระทรวงการต่างประเทศ','MOPH, Foreign Affairs'],n:['ติดตามผล WHA79 กำหนดจุดยืนแบ่งปันเชื้อและประโยชน์','Track WHA79 outcome; set position on pathogen and benefit sharing']},
+ {t:['อุดช่องว่างงบหลังสหรัฐถอนตัวจาก WHO และลดทุน PEPFAR/USAID','Fill funding gaps after US exit from WHO and PEPFAR/USAID cuts'],s:'g',p:1,u:3,due:['ทันที','Now'],o:['กรมควบคุมโรค, สปสช., ภาคประชาสังคม','DDC, NHSO, civil society'],n:['ระบุบริการ HIV/TB ที่ได้รับผลกระทบ ย้ายเข้างบในประเทศ','Identify affected HIV/TB services; move them to domestic funding']},
+ {t:['Global Fund รอบ GC8 (2569–2571) และแผนเปลี่ยนผ่านสู่งบในประเทศ','Global Fund GC8 (2026–28) and transition to domestic funding'],s:'g',p:1,u:3,due:['2569–2571','2026–28'],o:['กรมควบคุมโรค, CCM, สปสช.','DDC, CCM, NHSO'],n:['ให้ สปสช. จ่าย PrEP และงานเชิงรุกในกลุ่มประชากรหลัก','Have NHSO pay for PrEP and outreach to key populations']},
+ {t:['แก้ปัญหากำลังคน แพทย์และพยาบาลลาออก ภาระงานเกิน','Fix the workforce crisis: doctor and nurse attrition, overwork'],s:'d',p:1,u:3,due:['2569–2570','2026–27'],o:['สธ., ก.พ., สภาวิชาชีพ','MOPH, Civil Service Commission, councils'],n:['ปรับค่าตอบแทนและชั่วโมงทำงาน ใช้ Telemedicine','Adjust pay and hours; expand telemedicine']},
+ {t:['ยุติวัณโรค ตาม SDG 2573 และ End TB 2578','End TB: SDG 2030 and End TB 2035 targets'],s:'g',p:1,u:3,due:['2573','2030'],o:['กรมควบคุมโรค, สปสช.','DDC, NHSO'],n:['คัดกรองเชิงรุกด้วย X-ray + AI ยาสูตรสั้นสำหรับวัณโรคดื้อยา','Active case finding with X-ray + AI; short regimens for drug-resistant TB']},
+ {t:['รับมือสังคมสูงวัยระดับสุดยอด ระบบดูแลระยะยาว','Prepare for a super-aged society: long-term care'],s:'d',p:1,u:2,due:['~2574','~2031'],o:['สปสช., อปท., พม.','NHSO, local govt, Social Development ministry'],n:['ขยาย LTC ทุกสิทธิ พัฒนาผู้ดูแล และการเงินระยะยาว','Extend LTC to all schemes; train caregivers; long-term financing']},
+ {t:['โรคไม่ติดต่อ ลดการตายก่อนวัยอันควร 1/3 ตาม SDG 3.4','NCDs: cut premature deaths by a third (SDG 3.4)'],s:'g',p:1,u:2,due:['2573','2030'],o:['กรมอนามัย, สสส., สปสช.','Dept. of Health, ThaiHealth, NHSO'],n:['คัดกรองและติดตามในปฐมภูมิ ภาษีความหวาน/เกลือ','Primary-care screening and follow-up; sugar and salt taxes']},
+ {t:['ทีมหมอครอบครัวครอบคลุมทุกคน ตาม พ.ร.บ.ระบบสุขภาพปฐมภูมิ 2562','Family-doctor teams for everyone (Primary Health System Act 2019)'],s:'d',p:2,u:2,due:['2572','2029'],o:['สธ., สปสช.','MOPH, NHSO'],n:['เร่งผลิตแพทย์เวชศาสตร์ครอบครัว ผูกคลินิกเอกชนเข้าเครือข่าย','Train more family physicians; bring private clinics into networks']},
+ {t:['เชื่อมคุณภาพและการส่งต่อของ รพ.สต. ที่ถ่ายโอนไป อบจ.','Link quality and referral for health centres moved to provincial councils'],s:'d',p:2,u:3,due:['2569','2026'],o:['อบจ., สธ., สปสช.','PAO, MOPH, NHSO'],n:['มาตรฐานกลาง ระบบส่งต่อและข้อมูลร่วม','Common standards, shared referral and data systems']},
+ {t:['30 บาทรักษาทุกที่ และข้อมูลสุขภาพเชื่อมต่อภายใต้ PDPA','"30 baht anywhere" and connected health data under PDPA'],s:'d',p:2,u:3,due:['2569','2026'],o:['สปสช., สธ.','NHSO, MOPH'],n:['มาตรฐาน HL7 FHIR ความปลอดภัยไซเบอร์ รพ.','HL7 FHIR standards; hospital cybersecurity']},
+ {t:['ฝุ่น PM2.5 และความร้อน ผลกระทบสุขภาพจากสภาพอากาศ','PM2.5 and heat: climate health impacts'],s:'d',p:2,u:3,due:['ม.ค.–เม.ย. ทุกปี','Jan–Apr yearly'],o:['กรมอนามัย, กรมควบคุมมลพิษ','Dept. of Health, Pollution Control Dept.'],n:['แผนเตือนภัยและห้องปลอดฝุ่นก่อนฤดูฝุ่น 2570','Warnings and clean-air rooms before the 2027 haze season']},
+ {t:['ยุติเอดส์ 2573 (95-95-95)','End AIDS by 2030 (95-95-95)'],s:'g',p:2,u:2,due:['2573','2030'],o:['กรมควบคุมโรค, UNAIDS, ภาคประชาสังคม','DDC, UNAIDS, civil society'],n:['ขยาย PrEP และการตรวจด้วยตนเอง ลดการตีตรา','Scale PrEP and self-testing; reduce stigma']},
+ {t:['เชื้อดื้อยา: ลดการตาย 10% ภายใน 2573 ตามปฏิญญา UNGA 2567','AMR: cut deaths 10% by 2030 (UNGA 2024 declaration)'],s:'g',p:2,u:2,due:['2573','2030'],o:['สธ., กรมปศุสัตว์, อย.','MOPH, Livestock Dept., Thai FDA'],n:['ปรับแผน AMR แบบ One Health','Update the national AMR plan, One Health approach']},
+ {t:['ความยั่งยืนทางการคลังของบัตรทองในวาระ 25 ปี','Fiscal sustainability of UCS at 25 years'],s:'d',p:2,u:2,due:['2570','2027'],o:['สปสช., กระทรวงการคลัง, HITAP','NHSO, Finance, HITAP'],n:['ประเมินความคุ้มค่าก่อนเพิ่มสิทธิ ลดความเหลื่อมล้ำ 3 กองทุน','HTA before adding benefits; close gaps between schemes']},
+ {t:['สุขภาพจิตและการป้องกันการฆ่าตัวตาย','Mental health and suicide prevention'],s:'d',p:2,u:2,due:['2570','2027'],o:['กรมสุขภาพจิต, สปสช.','Dept. of Mental Health, NHSO'],n:['บริการปรึกษาออนไลน์ บุคลากรสุขภาพจิตในปฐมภูมิ','Online counselling; mental-health staff in primary care']},
+ {t:['ความมั่นคงด้านวัคซีน (ไทยไม่อยู่ในกลุ่มรับทุน Gavi) และวัคซีน HPV','Vaccine security (Thailand is not Gavi-eligible) and HPV'],s:'g',p:3,u:2,due:['2569–2573','2026–30'],o:['สถาบันวัคซีนแห่งชาติ, GPO','NVI, GPO'],n:['ผลิตในประเทศ จัดซื้อร่วมระดับภูมิภาค','Local production; regional pooled procurement']},
+ {t:['ศูนย์ ACPHEED ของอาเซียนทำงานเต็มรูปแบบ','ASEAN ACPHEED fully operational'],s:'g',p:3,u:2,due:['2569–2570','2026–27'],o:['กรมควบคุมโรค, อาเซียน','DDC, ASEAN'],n:['แบ่งปันข้อมูลโรคระบาดและเครือข่ายแล็บภูมิภาค','Outbreak data sharing and regional lab network']},
+ {t:['เงื่อนไข Copayment ประกันเอกชน และนโยบาย Medical Hub','Private insurance co-payment rules and Medical Hub policy'],s:'d',p:3,u:1,due:['ต่อเนื่อง','Ongoing'],o:['คปภ., กรม สบส., รพ.เอกชน','OIC, DHSS, private hospitals'],n:['ติดตามผลต่อภาระของ รพ.รัฐ','Monitor knock-on load on public hospitals']},
+ {t:['สอดคล้องแผน GPW14 ของ WHO (2568–2571)','Align with WHO GPW14 (2025–28)'],s:'g',p:3,u:1,due:['2571','2028'],o:['สธ., WHO ประเทศไทย','MOPH, WHO Thailand'],n:['ผูกตัวชี้วัด CCS กับเป้า GPW14','Tie country strategy indicators to GPW14']}
+];
+M.forEach((m,i)=>{m.id='ms'+i;m.score=(4-m.p)*3+m.u;});
+const ranked=[...M].sort((a,b)=>b.score-a.score||a.p-b.p);ranked.forEach((m,i)=>m.rank=i+1);
+let scope='all', sortKey='rank', asc=true;
+const MH=[['rank',['ลำดับ','Rank']],['title',['Milestone','Milestone']],['p',['Priority','Priority']],['u',['Urgency','Urgency']],['due',['กำหนด','Due']],[null,['เจ้าภาพหลัก','Lead']],[null,['ก้าวถัดไป','Next step']]];
+function renderMatrix(){
+  let h='<div class="ax"></div>'+[3,2,1].map(u=>`<div class="ax">Urgency ${t(UL[u])}</div>`).join('');
+  [1,2,3].forEach(p=>{h+=`<div class="ax">P${p}</div>`;[3,2,1].forEach(u=>{
+    h+=`<div class="cell${p===1&&u===3?' hot':''}">`+ranked.filter(m=>m.p===p&&m.u===u).map(m=>{const s=t(m.t);return `<button class="mchip ${m.s}" data-id="${m.id}">${m.rank}. ${s.length>46?s.slice(0,44)+'…':s}</button>`;}).join('')+'</div>';});});
+  document.getElementById('matrix').innerHTML=h;
+}
+function renderTable(){
+  document.querySelector('#mtable thead').innerHTML='<tr>'+MH.map(([k,l])=>`<th>${k?`<button data-sort="${k}">${t(l)}</button>`:t(l)}</th>`).join('')+'</tr>';
+  document.querySelectorAll('#mtable th button').forEach(b=>b.onclick=()=>{const k=b.dataset.sort;asc=sortKey===k?!asc:true;sortKey=k;renderTable();});
+  const val=(m,k)=>k==='title'?t(m.t):k==='due'?t(m.due):k==='u'?-m.u:m[k];
+  const rows=ranked.filter(m=>scope==='all'||m.s===scope).sort((a,b)=>{const x=val(a,sortKey),y=val(b,sortKey);return (x>y?1:x<y?-1:0)*(asc?1:-1);});
+  document.querySelector('#mtable tbody').innerHTML=rows.map(m=>`<tr id="${m.id}"><td class="num">${m.rank}</td><td>${t(m.t)}<br><span class="scope">${m.s==='g'?t(STR['f-g']):t(STR['f-d'])}</span></td><td><span class="pill p${m.p}">P${m.p}</span></td><td><span class="pill p${4-m.u}">${t(UL[m.u])}</span></td><td class="num">${t(m.due)}</td><td>${t(m.o)}</td><td>${t(m.n)}</td></tr>`).join('');
+}
+const segs={all:'f-all',d:'f-d',g:'f-g'};
+Object.entries(segs).forEach(([k,id])=>document.getElementById(id).onclick=()=>{scope=k;Object.values(segs).forEach(i=>document.getElementById(i).setAttribute('aria-pressed',String(i===id)));renderTable();});
+document.getElementById('matrix').addEventListener('click',ev=>{const b=ev.target.closest('.mchip');if(!b)return;
+  if(scope!=='all')document.getElementById('f-all').click();
+  const row=document.getElementById(b.dataset.id);if(!row)return;row.scrollIntoView({behavior:'smooth',block:'center'});
+  row.classList.add('flash');setTimeout(()=>row.classList.remove('flash'),1600);});
+
+/* ================= 3D ================= */
+const LAYERS=[{key:'global',y:62,r:62},{key:'policy',y:20,r:54},{key:'provider',y:-22,r:58},{key:'people',y:-60,r:22}];
+const sectorVar={intl:'--global',pub:'--public',pvt:'--private',comm:'--people'};
+const EV={fund:'--e-fund',reg:'--e-reg',tech:'--e-tech',svc:'--e-svc'};
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const stage=document.getElementById('stage'), labelsEl=document.getElementById('labels'), panel=document.getElementById('panel'), toolbar=document.getElementById('toolbar'), cbar=document.getElementById('countrybar');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let cur=byCode.TH, N=[], E=[], byId={}, selected=null, hovered=null, gl=null;
+const activeTypes=new Set(Object.keys(EV));
+
+function legendHTML(){return '<div class="legend">'+Object.keys(EV).map(k=>`<span><i class="ln" style="background:var(${EV[k]})"></i>${t(UI.etype[k])}</span>`).join('')+Object.keys(sectorVar).map(k=>`<span><i class="dot" style="background:var(${sectorVar[k]})"></i>${t(UI.sector[k])}</span>`).join('')+'</div>';}
+function showDefault(){
+  panel.innerHTML=`<span class="kind">${t(cur.name)} · ${t(cur.model)}</span><h3>${t(UI.q)}</h3><blockquote>${t(cur.q)}</blockquote><p>${t(cur.found)}</p><span class="kind">${t(UI.howto)}</span><p>${t(UI.howp)}</p>${legendHTML()}<p>${N.length} ${t(UI.counts)} · ${E.length} ${t(UI.links)}</p>`;
+}
+function showNode(nd){
+  const outs=E.filter(x=>x.s===nd.id), ins=E.filter(x=>x.t===nd.id);
+  const li=(x,o,d)=>`<li><i class="ln" style="background:var(${EV[x.type]})"></i><span>${d} <button data-go="${o.id}">${t(o.label)}</button> <span style="color:var(--stage-muted)">· ${t(UI.etype[x.type])}</span></span></li>`;
+  const li2=LAYERS.findIndex(l=>l.key===nd.layer);
+  panel.innerHTML=`<span class="kind">${t(cur.name)} · ${t(UI.sector[nd.sector])} · ${t(UI.layers[li2])}</span><h3>${t(nd.label)}</h3><p>${t(nd.desc)}</p>`+
+   (outs.length?`<span class="kind">${t(UI.out)}</span><ul>${outs.map(x=>li(x,byId[x.t],'→')).join('')}</ul>`:'')+
+   (ins.length?`<span class="kind">${t(UI.inn)}</span><ul>${ins.map(x=>li(x,byId[x.s],'←')).join('')}</ul>`:'')+
+   `<button class="chip" id="clearsel" style="align-self:flex-start;margin-top:6px">${t(UI.clear)}</button>`;
+  panel.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>select(byId[b.dataset.go]));
+  document.getElementById('clearsel').onclick=()=>select(null);
+}
+function renderPanel(){selected?showNode(selected):showDefault();}
+function renderToolbar(){
+  cbar.innerHTML=COUNTRIES.map(c=>`<button class="chip" data-c="${c.code}" aria-pressed="${c===cur}">${t(c.name)}</button>`).join('');
+  cbar.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>setCountry(byCode[b.dataset.c]));
+  toolbar.innerHTML=Object.keys(EV).map(k=>`<button class="chip" data-e="${k}" aria-pressed="${activeTypes.has(k)}"><i class="ln" style="background:var(${EV[k]})"></i>${t(UI.etype[k])}</button>`).join('')+
+    `<button class="chip" id="spin" aria-pressed="${gl?gl.controls.autoRotate:!reduce}">${t(UI.spin)}</button>`;
+  toolbar.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const k=b.dataset.e;activeTypes.has(k)?activeTypes.delete(k):activeTypes.add(k);b.setAttribute('aria-pressed',activeTypes.has(k));refresh();});
+  document.getElementById('spin').onclick=function(){if(!gl)return;gl.controls.autoRotate=!gl.controls.autoRotate;this.setAttribute('aria-pressed',gl.controls.autoRotate);};
+}
+function layout(){
+  LAYERS.forEach(L=>{
+    const ns=N.filter(x=>x.layer===L.key);
+    const ring=ns.filter(x=>!(L.key==='people'&&x.id==='people'));
+    ns.forEach(x=>{
+      if(L.key==='people'&&x.id==='people'){x.pos=[0,L.y,0];return;}
+      const i=ring.indexOf(x), a=(i/ring.length)*Math.PI*2+(L.key==='policy'?0.3:0);
+      const r=L.key==='people'?L.r:L.r*(ns.length<8?0.8:1);
+      x.pos=[Math.cos(a)*r, L.y+(L.key==='people'?0:(i%2?4:-4)), Math.sin(a)*r];
+    });
+  });
+}
+function setCountry(c){
+  cur=c; selected=null; hovered=null;
+  N=c.graph.N.map(x=>Object.assign({},x));
+  byId=Object.fromEntries(N.map(x=>[x.id,x]));
+  E=c.graph.E.map(x=>Object.assign({},x)).filter(x=>byId[x.s]&&byId[x.t]);
+  layout(); renderToolbar(); renderPanel();
+  if(gl) buildScene();
+}
+function initGL(){
+  if(!window.THREE||!THREE.OrbitControls){stage.insertAdjacentHTML('beforeend',`<div class="fallback">${t(UI.nogl)}</div>`);return;}
+  let renderer;try{renderer=new THREE.WebGLRenderer({antialias:true});}catch(err){stage.insertAdjacentHTML('beforeend',`<div class="fallback">${t(UI.nogl)}</div>`);return;}
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));stage.prepend(renderer.domElement);
+  const scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(45,1,1,2000);
+  camera.position.set(150,70,190);
+  const controls=new THREE.OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true;controls.autoRotate=!reduce;controls.autoRotateSpeed=0.6;controls.minDistance=60;controls.maxDistance=520;
+  scene.add(new THREE.AmbientLight(0xffffff,0.75));const dl=new THREE.DirectionalLight(0xffffff,0.6);dl.position.set(80,160,120);scene.add(dl);
+  const rings=LAYERS.map((L,i)=>{
+    const ring=new THREE.Mesh(new THREE.RingGeometry(L.r-0.4,L.r+0.4,96),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.12,side:THREE.DoubleSide}));
+    ring.rotation.x=-Math.PI/2;ring.position.y=L.y;scene.add(ring);
+    const disc=new THREE.Mesh(new THREE.CircleGeometry(L.r+8,96),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.025,side:THREE.DoubleSide}));
+    disc.rotation.x=-Math.PI/2;disc.position.y=L.y-0.5;scene.add(disc);
+    const tag=document.createElement('div');tag.className='lbl layer';labelsEl.appendChild(tag);
+    return {i,tag,anchor:new THREE.Vector3(L.r+12,L.y,0)};
+  });
+  gl={renderer,scene,camera,controls,rings,group:null,meshes:[]};
+  const ray=new THREE.Raycaster(), mouse=new THREE.Vector2();
+  const pick=ev=>{const r=renderer.domElement.getBoundingClientRect();mouse.set(((ev.clientX-r.left)/r.width)*2-1,-((ev.clientY-r.top)/r.height)*2+1);ray.setFromCamera(mouse,camera);const h=ray.intersectObjects(gl.meshes);return h.length?h[0].object.userData.n:null;};
+  let down=null;
+  renderer.domElement.addEventListener('pointerdown',ev=>down=[ev.clientX,ev.clientY]);
+  renderer.domElement.addEventListener('pointerup',ev=>{if(down&&Math.hypot(ev.clientX-down[0],ev.clientY-down[1])<6)select(pick(ev));down=null;});
+  renderer.domElement.addEventListener('pointermove',ev=>{if(ev.pointerType!=='mouse')return;const nd=pick(ev);if(nd!==hovered){hovered=nd;renderer.domElement.style.cursor=nd?'pointer':'grab';if(!selected)refresh();}});
+  const resize=()=>{const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();if(w<520)camera.position.setLength(300);};
+  new ResizeObserver(resize).observe(stage);resize();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',recolor);
+  new MutationObserver(recolor).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  buildScene();
+  const v=new THREE.Vector3(), clock=new THREE.Clock();
+  const place=(el,vec,dim)=>{v.copy(vec).project(camera);const w=stage.clientWidth,h=stage.clientHeight;if(v.z>1){el.style.opacity=0;return;}
+    el.style.left=((v.x+1)/2*w)+'px';el.style.top=((1-v.y)/2*h)+'px';const d=camera.position.distanceTo(vec);el.style.opacity=dim?.18:Math.max(.35,Math.min(1,1.6-d/320));el.style.zIndex=String(1000-Math.round(d));};
+  (function loop(){
+    const tm=clock.getElapsedTime();controls.update();
+    E.forEach(x=>{if(x.pulse&&x.pulse.visible)x.pulse.position.copy(x.curve.getPoint(reduce?.5:((tm*0.22+x.off)%1)));});
+    N.forEach(x=>{if(x.el&&x.mesh)place(x.el,x.mesh.position,x.dim);});
+    rings.forEach(r=>place(r.tag,r.anchor,false));
+    renderer.render(scene,camera);requestAnimationFrame(loop);
+  })();
+  renderLabels();
+}
+function buildScene(){
+  if(gl.group){gl.scene.remove(gl.group);gl.group.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});}
+  labelsEl.querySelectorAll('.lbl.node').forEach(x=>x.remove());
+  const g=new THREE.Group();gl.group=g;gl.meshes=[];
+  N.forEach(x=>{
+    const m=new THREE.Mesh(new THREE.SphereGeometry(x.big?4.2:2.8,24,16),new THREE.MeshStandardMaterial({color:new THREE.Color(css(sectorVar[x.sector])),roughness:.45,metalness:.1}));
+    m.position.set(...x.pos);m.userData.n=x;g.add(m);gl.meshes.push(m);x.mesh=m;
+    const el=document.createElement('div');el.className='lbl node'+(x.big?' big':'');labelsEl.appendChild(el);x.el=el;
+  });
+  E.forEach(x=>{
+    const a=new THREE.Vector3(...byId[x.s].pos), b=new THREE.Vector3(...byId[x.t].pos);
+    const mid=a.clone().add(b).multiplyScalar(.5).multiplyScalar(1.12);mid.y+=6;
+    x.curve=new THREE.QuadraticBezierCurve3(a,mid,b);
+    x.line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(x.curve.getPoints(32)),new THREE.LineBasicMaterial({color:new THREE.Color(css(EV[x.type])),transparent:true,opacity:.45}));g.add(x.line);
+    x.pulse=new THREE.Mesh(new THREE.SphereGeometry(0.9,8,6),new THREE.MeshBasicMaterial({color:new THREE.Color(css(EV[x.type]))}));g.add(x.pulse);
+    x.off=Math.random();
+  });
+  gl.scene.add(g);recolor();renderLabels();refresh();
+}
+function renderLabels(){
+  if(!gl)return;
+  N.forEach(x=>{if(x.el)x.el.textContent=t(x.label);});
+  gl.rings.forEach(r=>r.tag.textContent=t(UI.layers[r.i]));
+}
+function recolor(){
+  if(!gl)return;gl.scene.background=new THREE.Color(css('--stage'));
+  N.forEach(x=>x.mesh&&x.mesh.material.color.set(css(sectorVar[x.sector])));
+  E.forEach(x=>{if(!x.line)return;const c=css(EV[x.type]);x.line.material.color.set(c);x.pulse.material.color.set(c);});
+}
+function refresh(){
+  if(!gl)return;
+  const f=selected||hovered;let set=null;
+  if(f){set=new Set([f.id]);E.forEach(x=>{if(!activeTypes.has(x.type))return;if(x.s===f.id)set.add(x.t);if(x.t===f.id)set.add(x.s);});}
+  E.forEach(x=>{const on=activeTypes.has(x.type),rel=!f||x.s===f.id||x.t===f.id;x.line.visible=on;x.pulse.visible=on&&rel;x.line.material.opacity=f?(rel?.95:.06):.45;});
+  N.forEach(x=>{const lit=!set||set.has(x.id);x.mesh.material.transparent=!lit;x.mesh.material.opacity=lit?1:.25;x.mesh.material.emissive.setHex(f&&f.id===x.id?0x333333:0);x.mesh.scale.setScalar(f&&f.id===x.id?1.5:1);x.dim=!lit;});
+}
+function select(nd){selected=nd;renderPanel();refresh();if(nd&&gl){gl.controls.autoRotate=false;const s=document.getElementById('spin');if(s)s.setAttribute('aria-pressed','false');}}
+
+/* ================= Boot & language ================= */
+function renderAll(){renderStatic();renderActors();renderCare();renderCompare();renderMatrix();renderTable();renderToolbar();renderPanel();renderLabels();}
+function setLang(l){lang=l;try{localStorage.setItem('hsm-lang',l);}catch(err){}renderAll();}
+document.getElementById('lang-th').onclick=()=>setLang('th');
+document.getElementById('lang-en').onclick=()=>setLang('en');
+setCountry(byCode.TH);
+renderAll();
+initGL();
+})();
+</script>
+
+</body>
+</html>
