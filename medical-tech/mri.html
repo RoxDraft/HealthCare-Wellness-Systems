@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-en="MRI breakdown">MRI แยกชั้น</title>
+<meta name="description" content="เครื่อง MRI แยกชั้นแบบ 3D: แม่เหล็กตัวนำยิ่งยวด ขดลวด gradient ขดลวด RF หลักการสร้างภาพ ความปลอดภัย และประวัติ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<script src="../assets/i18n.js"></script>
+<script src="../assets/theme.js"></script>
+<style>
+.toc{display:flex;gap:8px;flex-wrap:wrap}
+.toc a{font-size:13px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--surface)}
+.facts{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.fact b{display:block;font-family:var(--display);font-size:22px;line-height:1.2}
+.fact span{font-size:13px;color:var(--muted)}
+.viewer{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px}
+@media (max-width:860px){.viewer{grid-template-columns:1fr}.stage{height:440px!important}}
+.stage{position:relative;background:var(--stage);border-radius:16px;overflow:hidden;height:min(68vh,560px);min-height:360px;touch-action:none}
+.stage canvas{display:block;width:100%!important;height:100%!important;cursor:grab}
+.stage .hint{position:absolute;left:12px;bottom:10px;font-family:var(--mono);font-size:11px;color:var(--stage-muted);pointer-events:none}
+.stage .ctrl{position:absolute;z-index:2;right:10px;top:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.stage .ctrl button{font:inherit;font-size:12px;background:rgba(255,255,255,.08);color:var(--stage-fg);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 12px;cursor:pointer}
+.stage .ctrl button[aria-pressed="true"]{background:#3CC4A0;color:#06201a;border-color:#3CC4A0}
+.stage .fallback{position:absolute;inset:0;display:grid;place-items:center;color:var(--stage-fg);padding:24px;text-align:center}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.panel h3{font-size:19px}
+.panel .role{color:var(--muted);font-size:14px}
+.panel ul{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);border-radius:999px;padding:3px 10px;cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.chips .sw{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+
+.steps{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.step svg{width:100%;height:auto;display:block;background:var(--surface2);border-radius:10px}
+.step b{font-family:var(--display);font-size:15px}
+.step span{font-size:13px;color:var(--muted)}
+.step .n{font-family:var(--mono);font-size:12px;color:var(--accent)}
+svg .pa{stroke:var(--fg);stroke-width:2;fill:none}
+svg .pb{stroke:var(--accent);stroke-width:2.4;fill:none}
+svg .pc{stroke:var(--accent2);stroke-width:2;fill:none}
+svg .dot{fill:var(--fg)}
+svg .tx{font-family:var(--mono);font-size:10px;fill:var(--muted)}
+
+.field{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.fchips{display:flex;gap:6px;flex-wrap:wrap}
+.fchips button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);border-radius:999px;padding:4px 12px;cursor:pointer}
+.fchips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.fout{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.fout div{background:var(--surface2);border-radius:10px;padding:10px 12px}
+.fout b{display:block;font-family:var(--mono);font-size:20px}
+.fout span{font-size:12px;color:var(--muted)}
+.fnote{font-size:14px;color:var(--muted)}
+
+.timeline{display:flex;flex-direction:column;border-left:2px solid var(--line);margin-left:8px}
+.ev{position:relative;padding:0 0 20px 22px}
+.ev::before{content:"";position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--accent)}
+.ev .yr{font-family:var(--mono);font-size:13px;color:var(--accent)}
+.ev h4{font-size:16px;margin:2px 0}
+.ev p{color:var(--muted);font-size:14px;max-width:70ch}
+.two{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.two ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.zones{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.zone{border-radius:12px;padding:12px 14px;border:1px solid var(--line);background:var(--surface)}
+.zone b{font-family:var(--display)}
+.zone span{display:block;font-size:13px;color:var(--muted)}
+.zone.z4{border-color:var(--red)}
+.zone.z3{border-color:var(--accent2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav" aria-label="เส้นทาง" data-en-label="Breadcrumb">
+    <span class="crumbs"><a href="../index.html" data-en="Home">หน้าหลัก</a> / <a href="index.html" data-en="Medical technology">เทคโนโลยีการแพทย์</a> / <span>MRI</span></span>
+    <span style="display:flex;gap:6px"><button class="lang-btn" type="button">EN</button><button class="theme-btn" type="button">☾ มืด</button></span>
+  </nav>
+
+  <header class="top">
+    <span class="eyebrow" data-en="Medical imaging · Magnetic resonance">ภาพถ่ายทางการแพทย์ · คลื่นแม่เหล็กไฟฟ้า</span>
+    <h1 data-en="Inside an MRI scanner">แยกชั้นเครื่อง MRI</h1>
+    <p class="lead" data-en="MRI makes pictures from the hydrogen in the body’s water and fat. A huge magnet lines the protons up, radio waves nudge them, and the faint radio signal they send back is turned into an image. No X-rays are involved.">MRI สร้างภาพจากไฮโดรเจนในน้ำและไขมันของร่างกาย แม่เหล็กขนาดใหญ่ทำให้โปรตอนเรียงตัว คลื่นวิทยุกระตุ้นให้มันเบนออก แล้วสัญญาณวิทยุอ่อน ๆ ที่โปรตอนส่งกลับมาถูกแปลงเป็นภาพ โดยไม่ใช้รังสีเอกซ์</p>
+    <nav class="toc" aria-label="ในหน้านี้" data-en-label="On this page">
+      <a href="#s-3d" data-en="3D layers">ชั้นต่าง ๆ แบบ 3D</a><a href="#s-how" data-en="Proton to image">จากโปรตอนถึงภาพ</a><a href="#s-field" data-en="Field strength">ความแรงสนาม</a><a href="#s-safety" data-en="Safety">ความปลอดภัย</a><a href="#s-history" data-en="History">ประวัติ</a><a href="#s-use" data-en="Uses">การใช้งาน</a>
+    </nav>
+    <p class="note" data-en="The 3D model is a simplified redrawing to explain the layers; real scanners differ by maker and model.">โมเดล 3D วาดขึ้นใหม่แบบย่อเพื่ออธิบายชั้นต่าง ๆ เครื่องจริงแตกต่างกันตามผู้ผลิตและรุ่น</p>
+  </header>
+
+  <section class="facts" aria-label="ตัวเลขสำคัญ" data-en-label="Key numbers">
+    <div class="fact"><b>1.5 / 3 T</b><span data-en="standard clinical field strengths; 1.5 T ≈ 30,000 × Earth’s field">ความแรงมาตรฐานในโรงพยาบาล 1.5 T ≈ 30,000 เท่าของสนามแม่เหล็กโลก</span></div>
+    <div class="fact"><b>−269 °C</b><span data-en="liquid helium keeps the magnet coils superconducting">ฮีเลียมเหลวรักษาขดลวดให้เป็นตัวนำยิ่งยวด</span></div>
+    <div class="fact"><b>60–70 cm</b><span data-en="typical bore diameter">ขนาดเส้นผ่านศูนย์กลางอุโมงค์ทั่วไป</span></div>
+    <div class="fact"><b data-en="15–60 min">15–60 นาที</b><span data-en="typical exam length, depending on body part">ระยะเวลาตรวจทั่วไป ขึ้นกับอวัยวะ</span></div>
+  </section>
+
+  <section id="s-3d" aria-labelledby="h-3d">
+    <div class="sec-head">
+      <span class="eyebrow" data-en="01 · 3D model">01 · โมเดล 3 มิติ</span>
+      <h2 id="h-3d" data-en="A scanner is a set of tubes inside tubes — tap a layer">เครื่อง MRI คือท่อซ้อนกันหลายชั้น แตะแต่ละชั้นเพื่อดูหน้าที่</h2>
+      <p data-en="The model is cut open by default so you can see inside. “Slide layers” pulls the tubes apart along the bore; “Move table” slides the patient in.">โมเดลเปิดผ่าไว้ให้เห็นข้างในตั้งแต่แรก กด “เลื่อนชั้นออก” เพื่อดึงท่อแต่ละชั้นออกตามแนวอุโมงค์ และ “เลื่อนเตียง” เพื่อพาผู้ป่วยเข้าเครื่อง</p>
+    </div>
+    <div class="viewer">
+      <div class="stage" id="stage">
+        <div class="ctrl">
+          <button type="button" id="b-cut" aria-pressed="true" data-en="Cut-away">ผ่าดูข้างใน</button>
+          <button type="button" id="b-exp" aria-pressed="false" data-en="Slide layers">เลื่อนชั้นออก</button>
+          <button type="button" id="b-tab" aria-pressed="false" data-en="Move table">เลื่อนเตียง</button>
+          <button type="button" id="b-reset" data-en="Reset view">มุมเริ่มต้น</button>
+        </div>
+        <span class="hint" data-en="drag = rotate · wheel/pinch = zoom · tap = select">ลาก = หมุน · ล้อ/บีบ = ซูม · แตะ = เลือก</span>
+      </div>
+      <aside class="panel" aria-live="polite">
+        <span class="eyebrow" id="p-ord"></span>
+        <h3 id="p-name"></h3>
+        <p class="role" id="p-role"></p>
+        <ul id="p-list"></ul>
+        <div class="chips" id="chips" role="group" aria-label="รายการชั้น" data-en-label="Layers"></div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="s-how" aria-labelledby="h-how">
+    <div class="sec-head">
+      <span class="eyebrow" data-en="02 · How the image forms">02 · ภาพเกิดขึ้นอย่างไร</span>
+      <h2 id="h-how" data-en="From spinning protons to a picture in six steps">จากโปรตอนที่หมุนอยู่ ถึงภาพหนึ่งภาพใน 6 ขั้น</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><svg viewBox="0 0 160 100"><g class="pa"><path d="M30 30l12 -10"/><path d="M80 25l-10 12"/><path d="M125 30l8 12"/><path d="M40 70l-12 6"/><path d="M85 70l14 4"/><path d="M128 72l-4 -14"/></g><g class="dot"><circle cx="30" cy="30" r="3"/><circle cx="80" cy="25" r="3"/><circle cx="125" cy="30" r="3"/><circle cx="40" cy="70" r="3"/><circle cx="85" cy="70" r="3"/><circle cx="128" cy="72" r="3"/></g></svg>
+        <span class="n">1</span><b data-en="Random protons">โปรตอนหันมั่ว</b><span data-en="Each hydrogen nucleus is a tiny magnet pointing in a random direction.">นิวเคลียสไฮโดรเจนแต่ละตัวเป็นแม่เหล็กจิ๋ว หันไปคนละทิศ</span></div>
+      <div class="step"><svg viewBox="0 0 160 100"><g class="pa"><path d="M30 70V40"/><path d="M60 70V40"/><path d="M90 70V40"/><path d="M120 70V40"/></g><path class="pb" d="M20 88H140"/><text class="tx" x="80" y="20" text-anchor="middle">B0 ↑</text><g class="pc"><ellipse cx="30" cy="40" rx="8" ry="3"/><ellipse cx="60" cy="40" rx="8" ry="3"/><ellipse cx="90" cy="40" rx="8" ry="3"/><ellipse cx="120" cy="40" rx="8" ry="3"/></g></svg>
+        <span class="n">2</span><b data-en="Align and wobble">เรียงตัวและหมุนส่าย</b><span data-en="In the main field a slight majority line up and wobble (precess) at the Larmor frequency.">ในสนามแม่เหล็กหลัก โปรตอนส่วนเกินเล็กน้อยเรียงตามสนาม และหมุนส่ายที่ความถี่ Larmor</span></div>
+      <div class="step"><svg viewBox="0 0 160 100"><path class="pa" d="M40 75V30" style="opacity:.35"/><path class="pb" d="M40 75H95"/><path d="M50 30 Q80 30 95 70" class="pc" stroke-dasharray="4 3"/><path d="M110 20q5 -8 10 0t10 0t10 0" class="pc"/><text class="tx" x="125" y="40" text-anchor="middle">RF</text></svg>
+        <span class="n">3</span><b data-en="RF pulse tips them">คลื่น RF ผลักให้เอียง</b><span data-en="A radio pulse at exactly that frequency tips the magnetisation sideways.">คลื่นวิทยุที่ความถี่ตรงกันพอดีผลักให้แม่เหล็กสุทธิเอียงไปด้านข้าง</span></div>
+      <div class="step"><svg viewBox="0 0 160 100"><path class="pb" d="M10 80 C40 30 60 22 150 20"/><path class="pc" d="M10 20 C40 70 60 78 150 80"/><text class="tx" x="150" y="14" text-anchor="end">T1 ↑</text><text class="tx" x="150" y="94" text-anchor="end">T2 ↓</text></svg>
+        <span class="n">4</span><b data-en="Relax and echo">คืนตัวและส่งสัญญาณ</b><span data-en="Protons recover (T1) and lose sync (T2) at rates that differ by tissue — the source of contrast.">โปรตอนคืนตัว (T1) และเสียจังหวะกัน (T2) ด้วยความเร็วต่างกันในแต่ละเนื้อเยื่อ จึงเกิดความต่างของภาพ</span></div>
+      <div class="step"><svg viewBox="0 0 160 100"><g class="pa"><path d="M20 80h120M20 80V15"/></g><g fill="var(--accent)"><rect x="30" y="55" width="16" height="25" opacity=".35"/><rect x="58" y="42" width="16" height="38" opacity=".55"/><rect x="86" y="30" width="16" height="50" opacity=".75"/><rect x="114" y="18" width="16" height="62"/></g><text class="tx" x="80" y="96" text-anchor="middle">x, y, z</text></svg>
+        <span class="n">5</span><b data-en="Gradients encode position">gradient บอกตำแหน่ง</b><span data-en="Gradient coils make the field slightly stronger along one direction, so each location sends a slightly different frequency.">ขดลวด gradient ทำให้สนามแรงขึ้นเล็กน้อยตามทิศทาง แต่ละตำแหน่งจึงส่งความถี่ต่างกันเล็กน้อย</span></div>
+      <div class="step"><svg viewBox="0 0 160 100"><g opacity=".9"><rect x="14" y="14" width="56" height="72" fill="var(--bg)"/><g fill="var(--accent)"><circle cx="42" cy="50" r="3"/><circle cx="42" cy="50" r="10" fill="none" stroke="var(--accent)" opacity=".5"/><circle cx="42" cy="50" r="20" fill="none" stroke="var(--accent)" opacity=".25"/></g></g><text class="tx" x="80" y="54" text-anchor="middle">FFT →</text><ellipse cx="124" cy="50" rx="26" ry="34" fill="var(--muted)" opacity=".35"/><ellipse cx="124" cy="50" rx="18" ry="24" fill="var(--fg)" opacity=".55"/><ellipse cx="116" cy="44" rx="4" ry="6" fill="var(--bg)"/><ellipse cx="132" cy="44" rx="4" ry="6" fill="var(--bg)"/></svg>
+        <span class="n">6</span><b data-en="k-space → image">k-space → ภาพ</b><span data-en="Signals fill a frequency map called k-space; a Fourier transform turns it into the image.">สัญญาณถูกเก็บเป็นแผนที่ความถี่เรียกว่า k-space แล้วแปลงฟูเรียร์ออกมาเป็นภาพ</span></div>
+    </div>
+    <div class="tbl-wrap" style="margin-top:16px"><table>
+      <thead><tr><th data-en="Sequence">ลำดับภาพ</th><th data-en="Bright">ขาว</th><th data-en="Dark">ดำ</th><th data-en="Used for">ใช้ดู</th></tr></thead>
+      <tbody>
+        <tr><td>T1</td><td data-en="fat, contrast agent">ไขมัน, สารทึบรังสี</td><td data-en="water, fluid">น้ำ, ของเหลว</td><td data-en="Anatomy; enhancing tumours after gadolinium">กายวิภาค, เนื้องอกที่จับสารทึบรังสี</td></tr>
+        <tr><td>T2</td><td data-en="water, fluid, swelling">น้ำ, ของเหลว, การบวม</td><td data-en="air, dense bone, some blood products">อากาศ, กระดูกแข็ง, เลือดบางระยะ</td><td data-en="Inflammation, oedema, most disease">การอักเสบ, การบวมน้ำ, โรคส่วนใหญ่</td></tr>
+        <tr><td>FLAIR</td><td data-en="lesions next to fluid">รอยโรคที่อยู่ติดน้ำ</td><td data-en="normal brain fluid (suppressed)">น้ำในสมองปกติ (ถูกกดสัญญาณ)</td><td data-en="Multiple sclerosis, brain lesions">โรค MS, รอยโรคในสมอง</td></tr>
+        <tr><td>DWI</td><td data-en="tissue where water cannot move freely">เนื้อเยื่อที่น้ำเคลื่อนที่ไม่ได้</td><td data-en="normal tissue">เนื้อเยื่อปกติ</td><td data-en="Stroke within minutes, abscess, some cancers">อัมพาตตั้งแต่นาทีแรก, ฝี, มะเร็งบางชนิด</td></tr>
+        <tr><td>MRA / fMRI</td><td data-en="flowing blood / active brain areas">เลือดที่ไหล / สมองส่วนที่ทำงาน</td><td>—</td><td data-en="Aneurysms without contrast; surgical brain mapping">หลอดเลือดโป่งพองโดยไม่ต้องฉีดสี, แผนที่สมองก่อนผ่าตัด</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="s-field" aria-labelledby="h-field">
+    <div class="sec-head">
+      <span class="eyebrow" data-en="03 · Field strength">03 · ความแรงสนามแม่เหล็ก</span>
+      <h2 id="h-field" data-en="Stronger magnet = more signal, but more trade-offs">แม่เหล็กแรงขึ้น = สัญญาณมากขึ้น แต่มีข้อแลกเปลี่ยน</h2>
+    </div>
+    <div class="field">
+      <div class="fchips" role="group" aria-label="เลือกความแรง" data-en-label="Pick a field strength" id="fchips"></div>
+      <div class="fout" id="fout"></div>
+      <p class="fnote" id="fnote"></p>
+    </div>
+  </section>
+
+  <section id="s-safety" aria-labelledby="h-safety">
+    <div class="sec-head">
+      <span class="eyebrow" data-en="04 · Safety">04 · ความปลอดภัย</span>
+      <h2 id="h-safety" data-en="The magnet is always on">แม่เหล็กเปิดอยู่ตลอดเวลา</h2>
+      <p data-en="A superconducting magnet stays on even when no one is being scanned. Most serious MRI accidents come from metal objects pulled into the bore or from implants, not from the scan itself.">แม่เหล็กตัวนำยิ่งยวดทำงานตลอดแม้ไม่มีผู้ป่วย อุบัติเหตุร้ายแรงส่วนใหญ่มาจากวัตถุโลหะถูกดูดเข้าเครื่องหรืออุปกรณ์ในร่างกาย ไม่ใช่จากการสแกนเอง</p>
+    </div>
+    <div class="zones">
+      <div class="zone"><b data-en="Zone I">โซน I</b><span data-en="Public areas, free access">พื้นที่ทั่วไป เข้าได้อิสระ</span></div>
+      <div class="zone"><b data-en="Zone II">โซน II</b><span data-en="Reception and screening questionnaire">จุดรับผู้ป่วยและกรอกแบบคัดกรอง</span></div>
+      <div class="zone z3"><b data-en="Zone III">โซน III</b><span data-en="Control room; only screened people, supervised">ห้องควบคุม เฉพาะผู้ผ่านการคัดกรองและมีเจ้าหน้าที่ดูแล</span></div>
+      <div class="zone z4"><b data-en="Zone IV">โซน IV</b><span data-en="Magnet room; strictly no unscreened metal">ห้องแม่เหล็ก ห้ามนำโลหะที่ไม่ผ่านการตรวจเข้าเด็ดขาด</span></div>
+    </div>
+    <div class="two" style="margin-top:16px">
+      <div class="card"><h3 data-en="Risks">ความเสี่ยง</h3><ul>
+        <li data-en="<b>Projectiles:</b> oxygen tanks, chairs, scissors can fly into the bore"><b>วัตถุพุ่ง</b> ถังออกซิเจน เก้าอี้ กรรไกร อาจถูกดูดเข้าอุโมงค์</li>
+        <li data-en="<b>Implants:</b> labelled MR Safe, MR Conditional or MR Unsafe; many modern pacemakers are MR Conditional with special settings"><b>อุปกรณ์ในร่างกาย</b> มีป้าย MR Safe, MR Conditional หรือ MR Unsafe เครื่องกระตุ้นหัวใจรุ่นใหม่หลายรุ่นตรวจได้ภายใต้เงื่อนไข</li>
+        <li data-en="<b>Heating:</b> radio energy warms tissue; wire loops, some tattoos and patches can burn"><b>ความร้อน</b> คลื่นวิทยุทำให้เนื้อเยื่ออุ่น สายไฟที่วนเป็นห่วง รอยสักบางชนิด และแผ่นแปะยาอาจทำให้ไหม้</li>
+        <li data-en="<b>Noise:</b> gradient coils knock at over 100 dB; hearing protection is required"><b>เสียงดัง</b> ขดลวด gradient เคาะดังเกิน 100 dB ต้องใส่ที่อุดหู</li>
+        <li data-en="<b>Gadolinium contrast:</b> avoided in severe kidney failure and pregnancy unless essential; trace amounts can remain in the body"><b>สารทึบรังสี gadolinium</b> หลีกเลี่ยงในไตวายรุนแรงและหญิงตั้งครรภ์ถ้าไม่จำเป็น อาจตกค้างในร่างกายปริมาณเล็กน้อย</li>
+      </ul></div>
+      <div class="card"><h3 data-en="Patient checklist">สิ่งที่ผู้ป่วยควรเตรียม</h3><ul>
+        <li data-en="Tell staff about any implant, surgery with metal, metal work or shrapnel">แจ้งเจ้าหน้าที่ถ้ามีอุปกรณ์ในร่างกาย เคยผ่าตัดใส่โลหะ ทำงานกับโลหะ หรือมีเศษโลหะในตัว</li>
+        <li data-en="Remove watches, cards, hairpins, hearing aids and medicated patches">ถอดนาฬิกา บัตร กิ๊บ เครื่องช่วยฟัง และแผ่นแปะยา</li>
+        <li data-en="Ask about wide-bore or open scanners, or sedation, if you are claustrophobic">ถ้ากลัวที่แคบ ถามเรื่องเครื่องอุโมงค์กว้าง เครื่องแบบเปิด หรือยาคลายกังวล</li>
+        <li data-en="Lie still; motion blurs the images and may mean repeating sequences">นอนนิ่ง การขยับทำให้ภาพเบลอและอาจต้องสแกนซ้ำ</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section id="s-history" aria-labelledby="h-history">
+    <div class="sec-head">
+      <span class="eyebrow" data-en="05 · History">05 · ประวัติ</span>
+      <h2 id="h-history" data-en="From a physics experiment to a hospital fixture">จากการทดลองฟิสิกส์สู่เครื่องมือประจำโรงพยาบาล</h2>
+    </div>
+    <div class="timeline">
+      <div class="ev"><span class="yr">1946</span><h4 data-en="Nuclear magnetic resonance">ค้นพบ NMR</h4><p data-en="Felix Bloch and Edward Purcell independently measured NMR in matter; Nobel Prize in Physics 1952.">Felix Bloch และ Edward Purcell วัดปรากฏการณ์ NMR ในสสารได้แยกกัน ได้รับรางวัลโนเบลฟิสิกส์ปี 1952</p></div>
+      <div class="ev"><span class="yr">1971</span><h4 data-en="Tumours relax differently">เนื้องอกคืนตัวต่างจากปกติ</h4><p data-en="Raymond Damadian reported that cancerous tissue has longer relaxation times than normal tissue, suggesting a medical use.">Raymond Damadian รายงานว่าเนื้อเยื่อมะเร็งมีเวลาคืนตัวนานกว่าเนื้อเยื่อปกติ จุดประกายการใช้ทางการแพทย์</p></div>
+      <div class="ev"><span class="yr">1973</span><h4 data-en="First image">ภาพแรก</h4><p data-en="Paul Lauterbur used magnetic field gradients to make the first NMR image, published in Nature.">Paul Lauterbur ใช้ gradient สร้างภาพ NMR ภาพแรก ตีพิมพ์ในวารสาร Nature</p></div>
+      <div class="ev"><span class="yr">1974–1977</span><h4 data-en="Faster imaging">สร้างภาพได้เร็วขึ้น</h4><p data-en="Peter Mansfield developed slice selection and echo-planar imaging, the basis of today’s fast scans and fMRI.">Peter Mansfield พัฒนาการเลือกชั้นภาพและ echo-planar imaging ซึ่งเป็นพื้นฐานของการสแกนเร็วและ fMRI</p></div>
+      <div class="ev"><span class="yr">1977</span><h4 data-en="First whole-body human scan">สแกนทั้งตัวในคนครั้งแรก</h4><p data-en="Damadian’s team scanned a human chest with the “Indomitable” machine; it took almost five hours.">ทีมของ Damadian สแกนหน้าอกคนด้วยเครื่อง “Indomitable” ใช้เวลาเกือบ 5 ชั่วโมง</p></div>
+      <div class="ev"><span class="yr" data-en="early 1980s">ต้น 1980s</span><h4 data-en="Into hospitals">เข้าสู่โรงพยาบาล</h4><p data-en="Commercial scanners arrived and FDA approved the first systems in the mid-1980s. “Nuclear” was dropped from the name to avoid public fear.">เครื่องเชิงพาณิชย์ออกสู่ตลาด และ FDA อนุมัติรุ่นแรก ๆ กลางทศวรรษ 1980 คำว่า “nuclear” ถูกตัดออกจากชื่อเพราะคนกลัวคำนี้</p></div>
+      <div class="ev"><span class="yr">1990</span><h4 data-en="Seeing the brain think">เห็นสมองทำงาน</h4><p data-en="Seiji Ogawa described the BOLD effect, which made functional MRI possible.">Seiji Ogawa อธิบายปรากฏการณ์ BOLD ทำให้เกิด functional MRI</p></div>
+      <div class="ev"><span class="yr">2003</span><h4 data-en="Nobel Prize">รางวัลโนเบล</h4><p data-en="Lauterbur and Mansfield shared the Nobel Prize in Physiology or Medicine.">Lauterbur และ Mansfield ได้รับรางวัลโนเบลสาขาสรีรวิทยาหรือการแพทย์ร่วมกัน</p></div>
+      <div class="ev"><span class="yr">2017–2024</span><h4 data-en="Very high and very low fields">สนามแรงมากและอ่อนมาก</h4><p data-en="FDA cleared the first 7 T clinical scanner (2017) and a portable 0.064 T bedside scanner (2020); France’s 11.7 T Iseult produced its first human images in 2024. Low-helium sealed magnets and AI reconstruction are cutting cost and scan time.">FDA อนุมัติเครื่อง 7 T สำหรับคลินิกเครื่องแรก (2017) และเครื่องพกพา 0.064 T ข้างเตียง (2020) ส่วนเครื่อง Iseult 11.7 T ของฝรั่งเศสได้ภาพคนครั้งแรกปี 2024 แม่เหล็กแบบปิดที่ใช้ฮีเลียมน้อยและการสร้างภาพด้วย AI ช่วยลดต้นทุนและเวลาตรวจ</p></div>
+    </div>
+    <p class="note" style="margin-top:8px" data-en="Main makers: Siemens Healthineers, GE HealthCare, Philips, Canon Medical and United Imaging.">ผู้ผลิตหลัก: Siemens Healthineers, GE HealthCare, Philips, Canon Medical และ United Imaging</p>
+  </section>
+
+  <section id="s-use" aria-labelledby="h-use">
+    <div class="sec-head">
+      <span class="eyebrow" data-en="06 · Uses">06 · การใช้งาน</span>
+      <h2 id="h-use" data-en="When MRI, when CT?">เมื่อไรใช้ MRI เมื่อไรใช้ CT</h2>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th></th><th>MRI</th><th>CT</th></tr></thead>
+      <tbody>
+        <tr><td data-en="Radiation">รังสี</td><td data-en="None">ไม่มี</td><td data-en="Ionising X-rays">รังสีเอกซ์</td></tr>
+        <tr><td data-en="Speed">ความเร็ว</td><td data-en="15–60 minutes">15–60 นาที</td><td data-en="seconds to minutes">ไม่กี่วินาทีถึงไม่กี่นาที</td></tr>
+        <tr><td data-en="Best at">ถนัด</td><td data-en="Brain, spinal cord, joints, ligaments, liver, prostate, heart muscle, pelvis">สมอง ไขสันหลัง ข้อ เอ็น ตับ ต่อมลูกหมาก กล้ามเนื้อหัวใจ อุ้งเชิงกราน</td><td data-en="Trauma, bleeding in the head, lungs, fractures, kidney stones, emergencies">อุบัติเหตุ เลือดออกในสมอง ปอด กระดูกหัก นิ่วไต และภาวะฉุกเฉิน</td></tr>
+        <tr><td data-en="Limits">ข้อจำกัด</td><td data-en="Metal implants, claustrophobia, long and noisy, cost, queues">อุปกรณ์โลหะในตัว กลัวที่แคบ นานและเสียงดัง ราคาสูง คิวยาว</td><td data-en="Radiation dose, iodine contrast and kidneys">ปริมาณรังสี สารทึบรังสีไอโอดีนกับไต</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note" style="margin-top:16px" data-en="Access varies widely. OECD data put Japan at roughly 55+ scanners per million people and the OECD average near 17 (early 2020s). In Thailand most scanners are in regional and university hospitals and private hospitals in big cities, and public-hospital queues can be long. Coverage under UCS, SSO and CSMBS applies when a doctor orders the scan for an approved indication — check with the hospital or NHSO for current rules.">การเข้าถึงต่างกันมาก ข้อมูล OECD ช่วงต้นทศวรรษ 2020 ระบุว่าญี่ปุ่นมีราว 55 เครื่องขึ้นไปต่อประชากร 1 ล้านคน ค่าเฉลี่ย OECD ราว 17 เครื่อง ในประเทศไทยเครื่องส่วนใหญ่อยู่ในโรงพยาบาลศูนย์ โรงเรียนแพทย์ และโรงพยาบาลเอกชนในเมืองใหญ่ คิวในโรงพยาบาลรัฐอาจยาว สิทธิบัตรทอง ประกันสังคม และข้าราชการครอบคลุมเมื่อแพทย์ส่งตรวจตามข้อบ่งชี้ ควรตรวจสอบเงื่อนไขล่าสุดกับโรงพยาบาลหรือ สปสช.</p>
+  </section>
+
+  <footer><p data-en="For education only, not medical advice. The 3D model and diagrams are simplified. Brand names are trademarks of their owners.">เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำทางการแพทย์ โมเดล 3D และแผนภาพวาดแบบย่อ ชื่อแบรนด์เป็นเครื่องหมายการค้าของเจ้าของแต่ละราย</p></footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+var EN=function(){return window.HWS&&HWS.lang()==='en';};
+/* ---------- field strength explorer ---------- */
+var FIELDS=[
+  {b:0.00005,l:['สนามโลก','Earth'],n:['สนามแม่เหล็กโลกประมาณ 50 ไมโครเทสลา ใช้เป็นตัวเทียบ','Earth’s field is about 50 microtesla — the yardstick']},
+  {b:0.064,l:['0.064 T พกพา','0.064 T portable'],n:['เครื่องพกพาเข็นไปข้างเตียงได้ ภาพหยาบกว่า แต่ช่วยผู้ป่วยวิกฤตที่ย้ายไม่ได้ และพื้นที่ห่างไกล','Wheeled to the bedside; coarser images but helps ICU patients who cannot be moved and remote areas']},
+  {b:0.55,l:['0.55 T สนามต่ำ','0.55 T low-field'],n:['สนามต่ำยุคใหม่ ใช้ฮีเลียมน้อย ราคาถูกลง ปลอดภัยกับโลหะมากขึ้น อาศัย AI ช่วยชดเชยสัญญาณ','Modern low field: little helium, cheaper, friendlier to metal implants; AI helps make up the signal']},
+  {b:1.5,l:['1.5 T','1.5 T'],n:['มาตรฐานที่ใช้มากที่สุดในโลก สมดุลระหว่างคุณภาพภาพ ความปลอดภัย และราคา','The world’s workhorse: a balance of image quality, safety and cost']},
+  {b:3,l:['3 T','3 T'],n:['สัญญาณมากขึ้นราว 2 เท่า ภาพสมอง ข้อ และต่อมลูกหมากคมขึ้น แต่ร้อนกว่า เสียงดังกว่า และอุปกรณ์บางชนิดตรวจไม่ได้','About twice the signal: sharper brain, joint and prostate images, but more heating, more noise, and some implants are excluded']},
+  {b:7,l:['7 T','7 T'],n:['ใช้ทางคลินิกได้ตั้งแต่ 2017 สำหรับสมองและข้อ ส่วนใหญ่อยู่ในศูนย์วิจัย','Clinical since 2017 for brain and joints; mostly in research centres']},
+  {b:11.7,l:['11.7 T Iseult','11.7 T Iseult'],n:['เครื่องวิจัยของฝรั่งเศส ได้ภาพสมองคนครั้งแรกปี 2024 แม่เหล็กหนักราว 130 ตัน','French research scanner; first human brain images in 2024; the magnet weighs about 130 tonnes']}
+];
+var fsel=3;
+function renderField(){
+  var f=FIELDS[fsel],en=EN();
+  var c=document.getElementById('fchips');c.innerHTML='';
+  FIELDS.forEach(function(x,i){var b=document.createElement('button');b.type='button';b.textContent=x.l[en?1:0];b.setAttribute('aria-pressed',i===fsel);b.onclick=function(){fsel=i;renderField();};c.appendChild(b);});
+  var mhz=42.58*f.b, earth=f.b/0.00005;
+  var fmt=function(n){return n>=100?Math.round(n).toLocaleString('en-US'):n>=1?n.toFixed(1):n.toPrecision(2);};
+  document.getElementById('fout').innerHTML=
+    '<div><span>'+(en?'Field strength':'ความแรงสนาม')+'</span><b>'+(f.b<0.001?'50 µT':f.b+' T')+'</b></div>'+
+    '<div><span>'+(en?'× Earth’s field':'เท่าของสนามโลก')+'</span><b>'+fmt(earth)+'×</b></div>'+
+    '<div><span>'+(en?'Proton frequency (42.58 MHz/T)':'ความถี่โปรตอน (42.58 MHz/T)')+'</span><b>'+(mhz<0.01?(mhz*1e6/1000).toFixed(1)+' kHz':fmt(mhz)+' MHz')+'</b></div>';
+  document.getElementById('fnote').textContent=f.n[en?1:0];
+}
+document.addEventListener('langchange',renderField);renderField();
+
+/* ---------- parts ---------- */
+var PARTS={
+  cover:{c:0xE8ECEB,th:['ชั้นที่ 1 · นอกสุด','ฝาครอบและระบบลดเสียง','เปลือกที่มองเห็น ซ่อนชั้นต่าง ๆ และช่วยลดเสียงเคาะจากขดลวด gradient',['มีไฟ พัดลม และไมโครโฟนคุยกับผู้ป่วย','รุ่นใหม่ใช้วัสดุซับเสียงทำให้เงียบลง']],en:['Layer 1 · outermost','Cover and acoustic shell','The visible shell hides the layers and damps the gradient knocking',['Holds lights, a fan and an intercom','Newer designs add sound damping for quieter scans']]},
+  cryo:{c:0x9AA6A8,th:['ชั้นที่ 2','ถังไครโอสแตท','ถังสุญญากาศหลายชั้นแบบกระติกน้ำร้อน ภายในแช่ขดลวดในฮีเลียมเหลว −269 °C',['เครื่องรุ่นเก่าใช้ฮีเลียมราว 1,000–2,000 ลิตร','รุ่นปิดผนึกใหม่บางรุ่นใช้เพียงไม่กี่ลิตร','ถ้าฮีเลียมเดือดหมดเร็ว (quench) แม่เหล็กดับ ก๊าซต้องระบายออกทางท่อสู่ภายนอก']],en:['Layer 2','Cryostat','A multi-layer vacuum flask that bathes the coils in liquid helium at −269 °C',['Older magnets hold about 1,000–2,000 litres of helium','Some new sealed magnets need only a few litres','If helium boils off suddenly (a quench), the field collapses and gas vents outside through a quench pipe']]},
+  magnet:{c:0xC07A3A,th:['ชั้นที่ 3 · หัวใจของเครื่อง','ขดลวดแม่เหล็กตัวนำยิ่งยวด','ลวด niobium-titanium ยาวหลายกิโลเมตร เมื่อเย็นจัดจะไม่มีความต้านทาน กระแสไฟจึงวิ่งวนได้ตลอดโดยไม่ต้องจ่ายไฟเพิ่ม',['สร้างสนามหลัก B0 ที่สม่ำเสมอมากตรงกลางอุโมงค์','แผ่นเหล็กเล็ก ๆ (shim) ปรับให้สนามสม่ำเสมอยิ่งขึ้น','เปิดค้างไว้ตลอด 24 ชั่วโมง']],en:['Layer 3 · the heart','Superconducting magnet coils','Kilometres of niobium-titanium wire with zero resistance when cold, so the current circulates indefinitely without power',['Creates the main field B0, extremely uniform at the centre','Small iron shims fine-tune the uniformity','Stays on 24 hours a day']]},
+  grad:{c:0x5FA8EC,th:['ชั้นที่ 4','ขดลวด gradient (X, Y, Z)','ขดลวด 3 ชุดที่เปิดปิดเร็วมาก ทำให้สนามแรงไม่เท่ากันตามตำแหน่ง ใช้ระบุว่าสัญญาณมาจากจุดไหน',['เป็นต้นเหตุของเสียงเคาะดัง เพราะขดลวดสั่นจากแรงแม่เหล็ก','สลับเร็วมากอาจกระตุ้นเส้นประสาทจนรู้สึกกระตุกเบา ๆ','ระบายความร้อนด้วยน้ำ']],en:['Layer 4','Gradient coils (X, Y, Z)','Three coil sets switched very fast to make the field vary with position, so the scanner knows where each signal comes from',['Cause the loud knocking as the coils flex under magnetic force','Very fast switching can cause mild nerve twitching','Water-cooled']]},
+  rf:{c:0x3CC4A0,th:['ชั้นที่ 5','ขดลวด RF ประจำตัวเครื่อง','เสาอากาศรูปกรงนก (birdcage) ส่งคลื่นวิทยุความถี่ Larmor เข้าร่างกาย และรับสัญญาณกลับ',['64 MHz ที่ 1.5 T, 128 MHz ที่ 3 T','คลื่นวิทยุทำให้ร่างกายอุ่นขึ้น เครื่องคุมไว้ด้วยค่า SAR','ห้องทั้งห้องหุ้มทองแดง (Faraday cage) กันวิทยุภายนอกรบกวน']],en:['Layer 5','Body RF coil','A birdcage antenna that transmits radio waves at the Larmor frequency and picks up the returning signal',['64 MHz at 1.5 T, 128 MHz at 3 T','Radio energy warms the body; the scanner limits it by SAR','The whole room is copper-shielded (a Faraday cage) against outside radio']]},
+  bore:{c:0xD9E2E0,th:['ชั้นที่ 6 · ในสุด','อุโมงค์ (bore)','ช่องที่ผู้ป่วยนอน เส้นผ่านศูนย์กลาง 60–70 ซม.',['เครื่องอุโมงค์กว้าง 70 ซม. ช่วยคนตัวใหญ่และคนกลัวที่แคบ','มีเครื่องแบบเปิดด้านข้าง แต่สนามมักอ่อนกว่า']],en:['Layer 6 · innermost','Bore','The tunnel the patient lies in, 60–70 cm across',['Wide-bore 70 cm models help larger and claustrophobic patients','Open designs exist but usually have weaker fields']]},
+  coil:{c:0xF0A64B,th:['อุปกรณ์เสริม','ขดลวดรับสัญญาณเฉพาะส่วน','วางชิดอวัยวะที่ตรวจ เช่นศีรษะ เข่า หัวใจ ยิ่งใกล้ยิ่งได้สัญญาณชัด',['มีหลายสิบช่องรับสัญญาณ ช่วยให้สแกนเร็วขึ้น (parallel imaging)','เลือกขดลวดตามอวัยวะที่ตรวจ']],en:['Accessory','Local receive coil','Placed close to the body part — head, knee, heart. Closer means clearer signal',['Dozens of channels enable faster parallel imaging','Chosen to match the body part']]},
+  table:{c:0x3A4446,th:['อุปกรณ์เสริม','เตียงผู้ป่วย','เลื่อนผู้ป่วยให้อวัยวะที่ตรวจอยู่ตรงกลางสนาม (isocenter)',['รับน้ำหนักได้ราว 200–250 กก. ขึ้นกับรุ่น','มีปุ่มฉุกเฉินให้ผู้ป่วยบีบเรียกเจ้าหน้าที่']],en:['Accessory','Patient table','Moves the patient so the body part sits at the field centre (isocentre)',['Weight limit about 200–250 kg depending on model','Patients hold a squeeze-ball alarm']]},
+  cold:{c:0x7C8B8E,th:['ระบบหล่อเย็น','หัวทำความเย็น (cold head)','เครื่องทำความเย็นที่ควบแน่นฮีเลียมที่ระเหยให้กลับเป็นของเหลว ทำให้แทบไม่ต้องเติมฮีเลียม',['ทำงานคู่กับคอมเพรสเซอร์และน้ำเย็น','ถ้าดับนาน ฮีเลียมจะค่อย ๆ ระเหยหมด']],en:['Cooling','Cold head','A cryocooler that re-condenses evaporated helium so it rarely needs topping up',['Runs with a compressor and chilled water','If it stops for long, helium slowly boils away']]}
+};
+var ORDER=['cover','cryo','magnet','grad','rf','bore','coil','table','cold'],curPart='magnet';
+function showInfo(id){
+  curPart=id;var p=id?PARTS[id][EN()?'en':'th']:null;
+  document.getElementById('p-ord').textContent=p?p[0]:'';
+  document.getElementById('p-name').textContent=p?p[1]:'';
+  document.getElementById('p-role').textContent=p?p[2]:'';
+  var ul=document.getElementById('p-list');ul.innerHTML='';if(p)p[3].forEach(function(s){var li=document.createElement('li');li.textContent=s;ul.appendChild(li);});
+  document.querySelectorAll('#chips button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.id===id);});
+}
+function renderChips(){
+  var c=document.getElementById('chips');c.innerHTML='';
+  ORDER.forEach(function(id){var b=document.createElement('button');b.type='button';b.dataset.id=id;
+    b.innerHTML='<span class="sw" style="background:#'+PARTS[id].c.toString(16).padStart(6,'0')+'"></span>'+PARTS[id][EN()?'en':'th'][1];
+    b.onclick=function(){window.__sel?__sel(id):showInfo(id);};c.appendChild(b);});
+  showInfo(curPart);
+}
+document.addEventListener('langchange',renderChips);renderChips();
+
+/* ---------- 3D ---------- */
+(function(){
+  var stage=document.getElementById('stage');
+  function fail(){stage.querySelector('.ctrl').hidden=true;stage.querySelector('.hint').hidden=true;var d=document.createElement('div');d.className='fallback';d.textContent=EN()?'This browser cannot show the 3D model. Use the layer list to read each part.':'เบราว์เซอร์นี้แสดงโมเดล 3D ไม่ได้ ใช้รายการชั้นด้านข้างเพื่ออ่านรายละเอียดแทน';stage.appendChild(d);}
+  if(typeof THREE==='undefined'){fail();return;}
+  var renderer;try{renderer=new THREE.WebGLRenderer({antialias:true});}catch(e){fail();return;}
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));stage.insertBefore(renderer.domElement,stage.firstChild);
+  var scene=new THREE.Scene();scene.background=new THREE.Color(0x0F1A1F);
+  var camera=new THREE.PerspectiveCamera(38,1,0.05,60);
+  var HOME={pos:new THREE.Vector3(3.6,2.4,4.4),tgt:new THREE.Vector3(0,1.0,0.3)};
+  camera.position.copy(HOME.pos);
+  var controls=new THREE.OrbitControls(camera,renderer.domElement);controls.target.copy(HOME.tgt);controls.enableDamping=true;controls.maxPolarAngle=Math.PI*0.495;controls.minDistance=1.2;controls.maxDistance=12;
+  scene.add(new THREE.HemisphereLight(0xffffff,0x223038,0.85));
+  var dl=new THREE.DirectionalLight(0xffffff,0.8);dl.position.set(4,7,5);scene.add(dl);
+  var dl2=new THREE.DirectionalLight(0x9fd8ff,0.35);dl2.position.set(-4,3,-5);scene.add(dl2);
+  var floor=new THREE.Mesh(new THREE.CircleGeometry(7,64),new THREE.MeshStandardMaterial({color:0x16252a,roughness:1}));floor.rotation.x=-Math.PI/2;scene.add(floor);
+  var grid=new THREE.GridHelper(14,28,0x2b4048,0x1e3036);grid.position.y=0.002;scene.add(grid);
+
+  var CY=1.05, groups={}, meshes=[], cutMeshes=[], cut=true;
+  function part(id){var g=new THREE.Group();g.userData={part:id,off:0,base:new THREE.Vector3()};scene.add(g);groups[id]=g;return g;}
+  function mat(c,o){o=o||{};return new THREE.MeshStandardMaterial({color:c,roughness:o.r!=null?o.r:0.5,metalness:o.m||0.1,side:THREE.DoubleSide,transparent:!!o.op,opacity:o.op||1});}
+  function reg(g,m){m.userData.part=g.userData.part;g.add(m);meshes.push(m);return m;}
+  // thick tube along z via lathe; cut-away removes the upper quadrant facing +x
+  function tubeGeos(rin,rout,len){
+    var pts=[new THREE.Vector2(rin,-len/2),new THREE.Vector2(rout,-len/2),new THREE.Vector2(rout,len/2),new THREE.Vector2(rin,len/2),new THREE.Vector2(rin,-len/2)];
+    return {full:new THREE.LatheGeometry(pts,64,0,Math.PI*2),cut:new THREE.LatheGeometry(pts,48,Math.PI,Math.PI*1.5)};
+  }
+  function tube(id,rin,rout,len,c,o){
+    var g=groups[id]||part(id),G=tubeGeos(rin,rout,len),m=reg(g,new THREE.Mesh(G.cut,mat(c,o)));
+    m.rotation.x=Math.PI/2;m.position.y=CY;m.userData.geos=G;cutMeshes.push(m);return m;
+  }
+  /* layers (radii in metres, roughly to scale) */
+  tube('cover',0.96,1.02,1.75,PARTS.cover.c);
+  tube('cover',0.36,0.96,0.02,PARTS.cover.c).position.z=0.875;
+  tube('cover',0.36,0.96,0.02,PARTS.cover.c).position.z=-0.875;
+  tube('cryo',0.58,0.9,1.6,PARTS.cryo.c,{m:0.6,r:0.35,op:0.55});
+  var mg=part('magnet');
+  [-0.62,-0.36,-0.12,0.12,0.36,0.62].forEach(function(z,i){
+    var R=(i===0||i===5)?0.76:0.7;
+    var tor=reg(mg,new THREE.Mesh(new THREE.TorusGeometry(R,0.045,10,64,Math.PI*1.5),mat(PARTS.magnet.c,{m:0.7,r:0.3})));
+    tor.position.set(0,CY,z);tor.rotation.z=Math.PI/2;tor.userData.full=new THREE.TorusGeometry(R,0.045,10,64,Math.PI*2);tor.userData.cutg=tor.geometry;tor.userData.isTorus=true;cutMeshes.push(tor);
+  });
+  tube('grad',0.43,0.53,1.45,PARTS.grad.c);
+  tube('rf',0.38,0.4,1.1,PARTS.rf.c,{op:0.85});
+  var rf=groups.rf;
+  for(var k=0;k<16;k++){var a=k/16*Math.PI*2;var r=reg(rf,new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,1.1,6),mat(0x2b8f75)));r.rotation.x=Math.PI/2;r.position.set(Math.cos(a)*0.375,CY+Math.sin(a)*0.375,0);r.userData.ang=a;cutMeshes.push(r);}
+  tube('bore',0.34,0.355,1.8,PARTS.bore.c);
+  /* cold head on top */
+  var cold=part('cold');
+  var ch=reg(cold,new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.11,0.4,20),mat(PARTS.cold.c,{m:0.6})));ch.position.set(0,CY+1.15,-0.45);
+  var ch2=reg(cold,new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.25,12),mat(PARTS.cold.c,{m:0.6})));ch2.position.set(0.22,CY+1.08,-0.6);
+  /* base plinth */
+  var base=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.12,1.5),mat(0x2a3538));base.position.set(0,0.06,0);scene.add(base);
+  /* table + patient + head coil */
+  var tbl=part('table');
+  var top=reg(tbl,new THREE.Mesh(new THREE.BoxGeometry(0.5,0.06,2.2),mat(0x3A4446)));top.position.set(0,CY-0.22,1.55);
+  var leg=reg(tbl,new THREE.Mesh(new THREE.BoxGeometry(0.42,CY-0.25,0.9),mat(0xD9E2E0)));leg.position.set(0,(CY-0.25)/2,2.15);
+  var pt=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,1.3,20),mat(0x5E8FA8,{r:0.9}));pt.rotation.x=Math.PI/2;pt.position.set(0,CY-0.05,1.75);pt.userData.part='table';tbl.add(pt);meshes.push(pt);
+  var head=new THREE.Mesh(new THREE.SphereGeometry(0.1,18,14),mat(0xC9A28A));head.position.set(0,CY-0.07,0.95);head.userData.part='table';tbl.add(head);meshes.push(head);
+  var hc=part('coil');
+  var cage=reg(hc,new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,0.3,16,1,true),mat(PARTS.coil.c,{op:0.75})));cage.rotation.x=Math.PI/2;cage.position.set(0,CY-0.05,0.93);
+  hc.userData.follow=true;
+
+  var OFF={cover:-1.9,cryo:-0.95,magnet:-0.95,grad:0.85,rf:1.7,bore:0,cold:-0.95};
+  var expl=0,explGoal=0,tabPos=0,tabGoal=0,tgtGoal=null,selected=null,hovered=null;
+  function applyCut(){
+    cutMeshes.forEach(function(m){
+      if(m.userData.geos){m.geometry=cut?m.userData.geos.cut:m.userData.geos.full;}
+      else if(m.userData.isTorus){m.geometry=cut?m.userData.cutg:m.userData.full;}
+      else if(m.userData.ang!=null){var a=m.userData.ang;m.visible=!(cut&&a>0.05&&a<Math.PI/2-0.05);}
+    });
+  }
+  applyCut();
+  function setEm(id,hex){meshes.forEach(function(m){if(m.userData.part===id){m.material.emissive.setHex(hex==null?0:hex);}});}
+  function select(id){if(selected)setEm(selected,null);selected=id;if(id){setEm(id,0x1d7a63);var b=new THREE.Box3().setFromObject(groups[id]);tgtGoal=b.getCenter(new THREE.Vector3());}showInfo(id);}
+  window.__sel=select;
+  var ray=new THREE.Raycaster(),ptr=new THREE.Vector2(),down=null;
+  function pick(e){var r=renderer.domElement.getBoundingClientRect();ptr.x=((e.clientX-r.left)/r.width)*2-1;ptr.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(ptr,camera);var h=ray.intersectObjects(meshes.filter(function(m){return m.visible;}),false);return h.length?h[0].object.userData.part:null;}
+  renderer.domElement.addEventListener('pointerdown',function(e){down=[e.clientX,e.clientY];});
+  renderer.domElement.addEventListener('pointerup',function(e){if(!down)return;var dx=e.clientX-down[0],dy=e.clientY-down[1];down=null;if(dx*dx+dy*dy<36){var id=pick(e);if(id)select(id);}});
+  renderer.domElement.addEventListener('pointermove',function(e){if(e.pointerType!=='mouse')return;var id=pick(e);if(id!==hovered){if(hovered&&hovered!==selected)setEm(hovered,null);hovered=id;if(id&&id!==selected)setEm(id,0x16323a);}renderer.domElement.style.cursor=id?'pointer':'grab';});
+  function tog(id,fn){var b=document.getElementById(id);b.addEventListener('click',function(){var v=fn();b.setAttribute('aria-pressed',v);});}
+  tog('b-cut',function(){cut=!cut;applyCut();return cut;});
+  tog('b-exp',function(){explGoal=explGoal?0:1;return !!explGoal;});
+  tog('b-tab',function(){tabGoal=tabGoal?0:1;return !!tabGoal;});
+  document.getElementById('b-reset').addEventListener('click',function(){camera.position.copy(HOME.pos);tgtGoal=HOME.tgt.clone();});
+  function resize(){var w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=camera.aspect<0.8?60:camera.aspect<1.2?50:38;camera.updateProjectionMatrix();}
+  if(window.ResizeObserver)new ResizeObserver(resize).observe(stage);else window.addEventListener('resize',resize);resize();
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches,visible=true;
+  if(window.IntersectionObserver)new IntersectionObserver(function(es){visible=es[0].isIntersecting;}).observe(stage);
+  select('magnet');
+  (function loop(){requestAnimationFrame(loop);if(!visible)return;var k=reduce?1:0.08;
+    expl+=(explGoal-expl)*k;tabPos+=(tabGoal-tabPos)*k;
+    Object.keys(OFF).forEach(function(id){groups[id].position.z=OFF[id]*expl;});
+    groups.table.position.z=-1.2*tabPos;groups.coil.position.z=-1.2*tabPos;
+    if(tgtGoal){controls.target.lerp(tgtGoal,k);if(controls.target.distanceTo(tgtGoal)<0.005)tgtGoal=null;}
+    controls.update();renderer.render(scene,camera);})();
+})();
+</script>
+</body>
+</html>

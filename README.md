@@ -11,14 +11,21 @@
 | เทคโนโลยีการแพทย์ (เมนูย่อย) | `medical-tech/index.html` | Smart Device, หุ่นยนต์ผ่าตัด, เครื่องมือวินิจฉัย, ภาพถ่ายทางการแพทย์ |
 | da Vinci | `medical-tech/da-vinci.html` | โมเดล 3D แยกชิ้นส่วน, แผนภาพ 2D, จุดเริ่มต้น, ทุกรุ่น, เคสที่ใช้, ผู้พัฒนา |
 | Whoop เทียบ Apple Watch | `medical-tech/wearables.html` | เซนเซอร์ ความแม่นยำ และการเทียบกับเครื่องมือของแพทย์ |
+| ECG 12 lead และ Holter | `medical-tech/ecg-holter.html` | เลือก lead ดูขั้วไฟฟ้าและผนังหัวใจ, คลื่นจำลอง, ข้างในเครื่อง, เทียบ Holter/patch/loop recorder |
+| MRI | `medical-tech/mri.html` | โมเดล 3D ผ่าชั้น, จากโปรตอนถึงภาพ, ความแรงสนาม, ความปลอดภัย, ประวัติ |
+| AED | `medical-tech/aed.html` | วิธีใช้, ประเภท, ข้างในเครื่อง, วิวัฒนาการ, การฝึกอบรมไทย/ต่างประเทศ, สถิติ, ตัวคำนวณจำนวนเครื่องตามพื้นที่ |
 
 ## เปิดดู
 
 เป็นไฟล์ HTML ล้วน ไม่ต้อง build เปิด `index.html` ในเบราว์เซอร์ได้เลย หรือเปิด GitHub Pages (Settings → Pages → Deploy from branch `main` / root)
 
+## ภาษา
+
+ทุกหน้ามีปุ่ม EN/ไทย (`assets/i18n.js`) ข้อความไทยอยู่ใน HTML ส่วนภาษาอังกฤษใส่ไว้ใน attribute `data-en` ของแต่ละ element ค่าภาษาที่เลือกจำไว้ใน `localStorage` (`hws-lang`) และใช้ร่วมกับแผนที่ระบบสุขภาพ
+
 ## เพิ่มอุปกรณ์ใหม่
 
-1. คัดลอก `medical-tech/wearables.html` เป็นแม่แบบ (ใช้ `assets/site.css` และ `assets/theme.js` ร่วมกัน)
+1. คัดลอก `medical-tech/wearables.html` เป็นแม่แบบ (ใช้ `assets/site.css`, `assets/i18n.js` และ `assets/theme.js` ร่วมกัน) และใส่ `data-en` ให้ทุกข้อความ
 2. เพิ่มการ์ดใน `medical-tech/index.html` แล้วเปลี่ยนป้าย “เร็ว ๆ นี้” เป็น “พร้อมใช้”
 
 เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำทางการแพทย์ ชื่อผลิตภัณฑ์เป็นเครื่องหมายการค้าของเจ้าของแต่ละราย

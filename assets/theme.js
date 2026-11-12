@@ -9,8 +9,12 @@
   }
   document.addEventListener('DOMContentLoaded',function(){
     var b=document.querySelector('.theme-btn'); if(!b) return;
-    function label(){ b.textContent = current()==='dark' ? '☀ สว่าง' : '☾ มืด'; }
+    function label(){
+      var en=root.lang==='en', dark=current()==='dark';
+      b.textContent = dark ? (en?'☀ Light':'☀ สว่าง') : (en?'☾ Dark':'☾ มืด');
+    }
     label();
+    document.addEventListener('langchange',label);
     b.addEventListener('click',function(){
       var next=current()==='dark'?'light':'dark';
       root.setAttribute('data-theme',next);

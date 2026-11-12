@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-en="12-lead ECG and Holter">ECG 12 lead และ Holter</title>
+<meta name="description" content="ECG 12 lead และ Holter ทำงานอย่างไร ติดขั้วไฟฟ้าตรงไหน แต่ละ lead มองหัวใจด้านไหน ค่าปกติ ส่วนประกอบในเครื่อง และประวัติ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<script src="../assets/i18n.js"></script>
+<script src="../assets/theme.js"></script>
+<style>
+.toc{display:flex;gap:8px;flex-wrap:wrap}
+.toc a{font-size:13px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--surface)}
+.facts{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.fact b{display:block;font-family:var(--display);font-size:22px;line-height:1.2}
+.fact span{font-size:13px;color:var(--muted)}
+
+/* lead explorer: body diagram | heart diagram, controls on top */
+.leads{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.leads button{font:inherit;font-family:var(--mono);font-size:13px;min-width:48px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:8px;padding:5px 10px;cursor:pointer}
+.leads button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.leads .sep{width:1px;background:var(--line);margin:0 4px}
+.explorer{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 300px;gap:14px}
+@media (max-width:980px){.explorer{grid-template-columns:1fr 1fr}.explorer .panel{grid-column:1/-1}}
+@media (max-width:560px){.explorer{grid-template-columns:1fr}}
+.fig{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px}
+.fig svg{display:block;width:100%;height:auto}
+.fig figcaption{font-size:12px;color:var(--muted);padding:4px 6px 0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.panel h3{font-size:19px}
+.panel .k{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.panel p{font-size:14px}
+svg .body{fill:var(--surface2);stroke:var(--line);stroke-width:2}
+svg .el{fill:var(--surface);stroke:var(--muted);stroke-width:2}
+svg .el.on{fill:var(--accent);stroke:var(--accent)}
+svg .el.neg{fill:var(--accent2);stroke:var(--accent2)}
+svg .elt{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+svg .elt.on{fill:var(--fg);font-weight:600}
+svg .wall{fill:var(--surface2);stroke:var(--surface);stroke-width:3;transition:fill .2s}
+svg .wall.on{fill:var(--accent)}
+svg .wl{font-family:var(--body);font-size:12px;fill:var(--fg)}
+svg .vec{stroke:var(--accent);stroke-width:2.5;fill:none}
+
+/* waveform strip: ECG paper grid stays pink-on-cream in both themes, like real paper */
+.strip-wrap{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:12px}
+.strip-ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.strip-ctrl button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);border-radius:999px;padding:4px 12px;cursor:pointer}
+.strip-ctrl button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.strip-ctrl label{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin-left:auto}
+.strip-ctrl input{accent-color:var(--accent)}
+.paper{overflow-x:auto;border-radius:8px}
+.paper svg{display:block;min-width:720px;width:100%;height:auto;background:#FFF8F5}
+.readout{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+.readout div{background:var(--surface2);border-radius:10px;padding:8px 12px}
+.readout b{display:block;font-family:var(--mono);font-size:18px}
+.readout span{font-size:12px;color:var(--muted)}
+.rhythm-note{font-size:14px;color:var(--muted);max-width:80ch}
+
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;overflow-x:auto}
+.diagram svg{display:block;width:100%;min-width:700px;height:auto}
+svg .bx{fill:var(--surface2);stroke:var(--line);stroke-width:1.5}
+svg .bx.k{fill:color-mix(in srgb,var(--accent) 14%,var(--surface));stroke:var(--accent)}
+svg .t{fill:var(--fg);font-family:var(--display);font-size:15px;font-weight:600}
+svg .s{fill:var(--muted);font-family:var(--body);font-size:12px}
+svg .ln{stroke:var(--accent);stroke-width:1.8;fill:none}
+.legend{display:grid;gap:8px 20px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));padding:12px 6px 4px;font-size:14px}
+.legend div{display:flex;gap:10px}
+.legend i{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--bg);background:var(--accent);border-radius:50%;width:22px;height:22px;flex:none;display:grid;place-items:center}
+
+.timeline{display:flex;flex-direction:column;border-left:2px solid var(--line);margin-left:8px}
+.ev{position:relative;padding:0 0 20px 22px}
+.ev::before{content:"";position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--accent)}
+.ev .yr{font-family:var(--mono);font-size:13px;color:var(--accent)}
+.ev h4{font-size:16px;margin:2px 0}
+.ev p{color:var(--muted);font-size:14px;max-width:70ch}
+.two{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.two ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav" aria-label="เส้นทาง" data-en-label="Breadcrumb">
+    <span class="crumbs"><a href="../index.html" data-en="Home">หน้าหลัก</a> / <a href="index.html" data-en="Medical technology">เทคโนโลยีการแพทย์</a> / <span>ECG &amp; Holter</span></span>
+    <span style="display:flex;gap:6px"><button class="lang-btn" type="button">EN</button><button class="theme-btn" type="button">☾ มืด</button></span>
+  </nav>
+
+  <header class="top">
+    <span class="eyebrow" data-en="Diagnostics · Heart">เครื่องมือวินิจฉัย · หัวใจ</span>
+    <h1 data-en="12-lead ECG and Holter monitoring">ECG 12 lead และ Holter</h1>
+    <p class="lead" data-en="An ECG records the heart’s electrical activity through electrodes on the skin. The 12-lead ECG looks at the heart from 12 angles for 10 seconds; a Holter records continuously for 24 hours or more to catch problems that come and go.">ECG บันทึกไฟฟ้าของหัวใจผ่านขั้วไฟฟ้าที่ติดบนผิวหนัง ECG 12 lead มองหัวใจจาก 12 มุมในเวลา 10 วินาที ส่วน Holter บันทึกต่อเนื่อง 24 ชั่วโมงขึ้นไป เพื่อจับความผิดปกติที่เกิดเป็นพัก ๆ</p>
+    <nav class="toc" aria-label="ในหน้านี้" data-en-label="On this page">
+      <a href="#s-leads" data-en="10 electrodes → 12 leads">10 ขั้ว → 12 lead</a><a href="#s-wave" data-en="Waveform">คลื่นไฟฟ้า</a><a href="#s-inside" data-en="Inside the machine">ข้างในเครื่อง</a><a href="#s-holter">Holter</a><a href="#s-history" data-en="History">ประวัติ</a><a href="#s-use" data-en="Uses and limits">การใช้และข้อจำกัด</a>
+    </nav>
+  </header>
+
+  <section class="facts" aria-label="ตัวเลขสำคัญ" data-en-label="Key numbers">
+    <div class="fact"><b data-en="10 electrodes">10 ขั้วไฟฟ้า</b><span data-en="4 on the limbs, 6 on the chest">4 ที่แขนขา 6 ที่หน้าอก</span></div>
+    <div class="fact"><b data-en="12 views">12 มุมมอง</b><span data-en="computed from 8 independent signals">คำนวณจากสัญญาณอิสระเพียง 8 ช่อง</span></div>
+    <div class="fact"><b>25 mm/s · 10 mm/mV</b><span data-en="standard paper speed and gain">ความเร็วกระดาษและขนาดสัญญาณมาตรฐาน</span></div>
+    <div class="fact"><b data-en="≤ 10 minutes">≤ 10 นาที</b><span data-en="target from arrival to ECG for chest pain">เป้าหมายตั้งแต่ผู้ป่วยเจ็บหน้าอกมาถึงจนได้ ECG</span></div>
+  </section>
+
+  <!-- leads -->
+  <section id="s-leads" aria-labelledby="h-leads">
+    <div class="sec-head">
+      <span class="eyebrow" data-en="01 · Electrodes and leads">01 · ขั้วไฟฟ้าและ lead</span>
+      <h2 id="h-leads" data-en="Pick a lead to see which electrodes it uses and which heart wall it watches">เลือก lead เพื่อดูว่าใช้ขั้วไหน และมองผนังหัวใจด้านไหน</h2>
+      <p data-en="An electrode is the sticker on the skin; a lead is the view the machine calculates between electrodes. Leads that watch the same wall usually map to the same coronary artery, which is how doctors locate a heart attack.">ขั้วไฟฟ้าคือแผ่นที่ติดบนผิว ส่วน lead คือมุมมองที่เครื่องคำนวณจากความต่างศักย์ระหว่างขั้ว lead ที่มองผนังเดียวกันมักตรงกับหลอดเลือดหัวใจเส้นเดียวกัน แพทย์จึงใช้บอกตำแหน่งกล้ามเนื้อหัวใจขาดเลือด</p>
+    </div>
+    <div class="leads" id="leadBtns" role="group" aria-label="เลือก lead" data-en-label="Choose a lead"></div>
+    <div class="explorer">
+      <figure class="fig" style="margin:0">
+        <svg viewBox="0 0 400 470" role="img" aria-label="ตำแหน่งขั้วไฟฟ้า 10 ตำแหน่งบนร่างกาย" data-en-label="Positions of the 10 electrodes on the body">
+          <path class="body" d="M150 40 Q200 10 250 40 L252 70 Q300 76 330 100 L372 300 L345 308 L305 150 L300 300 L290 330 L270 455 L215 455 L205 345 L195 345 L185 455 L130 455 L110 330 L100 300 L95 150 L55 308 L28 300 L70 100 Q100 76 148 70Z"/>
+          <circle cx="200" cy="42" r="30" class="body"/>
+          <path d="M200 90 V250" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 4"/>
+          <g id="els"></g>
+          <text class="s" x="200" y="290" text-anchor="middle" style="font-size:11px;fill:var(--muted);font-family:var(--body)" data-en="patient’s right ← → patient’s left">ขวาผู้ป่วย ← → ซ้ายผู้ป่วย</text>
+        </svg>
+        <figcaption data-en="Green = positive pole, orange = negative pole or the averaged reference">สีเขียว = ขั้วบวก สีส้ม = ขั้วลบหรือจุดอ้างอิงเฉลี่ย</figcaption>
+      </figure>
+      <figure class="fig" style="margin:0">
+        <svg viewBox="0 0 300 300" role="img" aria-label="ผนังหัวใจห้องล่างซ้าย 4 ด้าน" data-en-label="The four walls of the left ventricle">
+          <g transform="translate(150 150)">
+            <path id="w-ant" class="wall" d="M-74 -74 A105 105 0 0 1 74 -74 L42 -42 A60 60 0 0 0 -42 -42Z"/>
+            <path id="w-lat" class="wall" d="M74 -74 A105 105 0 0 1 74 74 L42 42 A60 60 0 0 0 42 -42Z"/>
+            <path id="w-inf" class="wall" d="M74 74 A105 105 0 0 1 -74 74 L-42 42 A60 60 0 0 0 42 42Z"/>
+            <path id="w-sep" class="wall" d="M-74 74 A105 105 0 0 1 -74 -74 L-42 -42 A60 60 0 0 0 -42 42Z"/>
+            <circle r="56" fill="var(--bg)"/>
+            <text class="wl" y="-80" text-anchor="middle" data-en="Anterior">ด้านหน้า</text>
+            <text class="wl" x="82" y="4" text-anchor="middle" data-en="Lateral">ด้านข้าง</text>
+            <text class="wl" y="90" text-anchor="middle" data-en="Inferior">ด้านล่าง</text>
+            <text class="wl" x="-82" y="4" text-anchor="middle" data-en="Septal">ผนังกั้น</text>
+            <text class="wl" y="-4" text-anchor="middle" style="fill:var(--muted)" data-en="Left">ห้องล่าง</text>
+            <text class="wl" y="14" text-anchor="middle" style="fill:var(--muted)" data-en="ventricle">ซ้าย</text>
+          </g>
+        </svg>
+        <figcaption data-en="Simplified diagram of the left ventricle, not true anatomy">แผนภาพย่อของห้องล่างซ้าย ไม่ใช่กายวิภาคจริง</figcaption>
+      </figure>
+      <aside class="panel" aria-live="polite">
+        <span class="k" id="l-type"></span>
+        <h3 id="l-name"></h3>
+        <p id="l-calc"></p>
+        <p id="l-wall"></p>
+        <p id="l-art" class="muted"></p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- waveform -->
+  <section id="s-wave" aria-labelledby="h-wave">
+    <div class="sec-head">
+      <span class="eyebrow" data-en="02 · Reading the waveform">02 · อ่านคลื่นไฟฟ้า</span>
+      <h2 id="h-wave" data-en="One heartbeat = P, QRS, T">หัวใจเต้นหนึ่งครั้ง = P, QRS, T</h2>
+      <p data-en="Each small square is 1 mm = 40 ms across and 0.1 mV high. Change the heart rate or pick a pattern to see how the waves and intervals change. This is a simulated lead II strip for teaching.">ช่องเล็กแต่ละช่องคือ 1 มม. = 40 มิลลิวินาทีตามแนวนอน และ 0.1 mV ตามแนวตั้ง ปรับอัตราการเต้นหรือเลือกรูปแบบเพื่อดูว่าคลื่นและช่วงเวลาเปลี่ยนอย่างไร เป็นคลื่นจำลอง lead II สำหรับการเรียนรู้</p>
+    </div>
+    <div class="strip-wrap">
+      <div class="strip-ctrl" role="group" aria-label="รูปแบบคลื่น" data-en-label="Rhythm pattern">
+        <button type="button" data-r="nsr" aria-pressed="true" data-en="Normal">ปกติ</button>
+        <button type="button" data-r="af" aria-pressed="false" data-en="Atrial fibrillation">หัวใจห้องบนสั่นพลิ้ว (AF)</button>
+        <button type="button" data-r="stemi" aria-pressed="false" data-en="ST elevation (STEMI)">ST ยก (STEMI)</button>
+        <button type="button" data-r="hyperk" aria-pressed="false" data-en="High potassium">โพแทสเซียมสูง</button>
+        <label><span data-en="Heart rate">อัตราการเต้น</span> <input type="range" id="hr" min="40" max="150" value="72" aria-label="อัตราการเต้น"> <b id="hrv" style="font-family:var(--mono);color:var(--fg)">72</b></label>
+      </div>
+      <div class="paper"><svg id="strip" viewBox="0 0 1000 290" role="img" aria-label="คลื่นไฟฟ้าหัวใจจำลอง" data-en-label="Simulated ECG strip"></svg></div>
+      <div class="readout" id="readout"></div>
+      <p class="rhythm-note" id="rnote"></p>
+    </div>
+    <div class="tbl-wrap" style="margin-top:16px"><table>
+      <thead><tr><th data-en="Measure">ค่า</th><th data-en="Normal adult">ปกติในผู้ใหญ่</th><th data-en="What it reflects">สะท้อนอะไร</th></tr></thead>
+      <tbody>
+        <tr><td data-en="Heart rate">อัตราการเต้น</td><td data-en="60–100 /min at rest">60–100 ครั้ง/นาที ขณะพัก</td><td data-en="Below 60 bradycardia, above 100 tachycardia (athletes can be lower)">ต่ำกว่า 60 เต้นช้า สูงกว่า 100 เต้นเร็ว (นักกีฬาอาจต่ำกว่าได้)</td></tr>
+        <tr><td data-en="P wave">คลื่น P</td><td data-en="< 120 ms, before every QRS">&lt; 120 ms มาก่อน QRS ทุกครั้ง</td><td data-en="Atria contracting; absent in AF">ห้องบนบีบตัว หายไปใน AF</td></tr>
+        <tr><td data-en="PR interval">ช่วง PR</td><td>120–200 ms</td><td data-en="Delay through the AV node; long = heart block">การหน่วงที่ AV node ยาวเกิน = heart block</td></tr>
+        <tr><td>QRS</td><td>&lt; 120 ms</td><td data-en="Ventricles depolarising; wide = bundle branch block or ventricular origin">ห้องล่างรับไฟฟ้า กว้าง = bundle branch block หรือจังหวะจากห้องล่าง</td></tr>
+        <tr><td data-en="ST segment">ช่วง ST</td><td data-en="flat on the baseline">ราบอยู่บนเส้นฐาน</td><td data-en="Raised in matching leads = acute heart attack until proven otherwise">ยกในหลาย lead ที่มองผนังเดียวกัน = กล้ามเนื้อหัวใจขาดเลือดเฉียบพลันจนกว่าจะพิสูจน์ได้ว่าไม่ใช่</td></tr>
+        <tr><td>QTc</td><td data-en="< 450 ms men, < 460 ms women">&lt; 450 ms ชาย, &lt; 460 ms หญิง</td><td data-en="Long QT raises the risk of dangerous arrhythmia; many drugs prolong it">QT ยาวเพิ่มความเสี่ยงหัวใจเต้นผิดจังหวะรุนแรง ยาหลายชนิดทำให้ยาวขึ้น</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- inside -->
+  <section id="s-inside" aria-labelledby="h-inside">
+    <div class="sec-head">
+      <span class="eyebrow" data-en="03 · Inside the machine">03 · ข้างในเครื่อง</span>
+      <h2 id="h-inside" data-en="From a 1-millivolt signal on the skin to a report">จากสัญญาณ 1 มิลลิโวลต์บนผิวหนังถึงใบรายงาน</h2>
+    </div>
+    <div class="diagram">
+      <svg viewBox="0 0 980 230" role="img" aria-label="ขั้นตอนประมวลสัญญาณในเครื่อง ECG" data-en-label="Signal chain inside an ECG machine">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--accent)"/></marker></defs>
+        <g>
+          <rect class="bx" x="10" y="40" width="140" height="96" rx="10"/><text class="t" x="80" y="72" text-anchor="middle" data-en="1 Electrodes">1 ขั้วไฟฟ้า</text><text class="s" x="80" y="94" text-anchor="middle" data-en="Ag/AgCl gel pads">แผ่นเจล Ag/AgCl</text><text class="s" x="80" y="112" text-anchor="middle" data-en="ion → electron current">แปลงไอออนเป็นกระแสไฟ</text>
+          <rect class="bx" x="175" y="40" width="140" height="96" rx="10"/><text class="t" x="245" y="72" text-anchor="middle" data-en="2 Lead cable">2 สายลีด</text><text class="s" x="245" y="94" text-anchor="middle" data-en="shielded wires">สายมีชีลด์กันสัญญาณรบกวน</text><text class="s" x="245" y="112" text-anchor="middle" data-en="defib protection">ป้องกันไฟกระตุกหัวใจ</text>
+          <rect class="bx k" x="340" y="40" width="150" height="96" rx="10"/><text class="t" x="415" y="72" text-anchor="middle" data-en="3 Amplifier">3 วงจรขยาย</text><text class="s" x="415" y="94" text-anchor="middle" data-en="differential, ~1000×">ขยายผลต่าง ~1,000 เท่า</text><text class="s" x="415" y="112" text-anchor="middle" data-en="right-leg drive cuts noise">ขาขวาช่วยลดสัญญาณรบกวน</text>
+          <rect class="bx" x="515" y="40" width="140" height="96" rx="10"/><text class="t" x="585" y="72" text-anchor="middle" data-en="4 Filters">4 ตัวกรอง</text><text class="s" x="585" y="94" text-anchor="middle" data-en="0.05–150 Hz diagnostic">0.05–150 Hz สำหรับวินิจฉัย</text><text class="s" x="585" y="112" text-anchor="middle" data-en="50 Hz mains notch">ตัดไฟบ้าน 50 Hz</text>
+          <rect class="bx" x="680" y="40" width="140" height="96" rx="10"/><text class="t" x="750" y="72" text-anchor="middle" data-en="5 Digitise">5 แปลงเป็นดิจิทัล</text><text class="s" x="750" y="94" text-anchor="middle" data-en="≥ 500 samples/s">≥ 500 ครั้ง/วินาที</text><text class="s" x="750" y="112" text-anchor="middle" data-en="8 channels → 12 leads">8 ช่อง → คำนวณ 12 lead</text>
+          <rect class="bx k" x="845" y="40" width="125" height="96" rx="10"/><text class="t" x="907" y="72" text-anchor="middle" data-en="6 Interpret">6 แปลผล</text><text class="s" x="907" y="94" text-anchor="middle" data-en="algorithm + doctor">อัลกอริทึม + แพทย์</text><text class="s" x="907" y="112" text-anchor="middle" data-en="print / PDF / HIS">พิมพ์ / PDF / ระบบ รพ.</text>
+          <path class="ln" d="M150 88H171" marker-end="url(#ar)"/><path class="ln" d="M315 88H336" marker-end="url(#ar)"/><path class="ln" d="M490 88H511" marker-end="url(#ar)"/><path class="ln" d="M655 88H676" marker-end="url(#ar)"/><path class="ln" d="M820 88H841" marker-end="url(#ar)"/>
+          <text class="s" x="10" y="180" data-en="Signal at the skin ≈ 0.5–3 mV; mains interference can be 100× larger, so noise rejection is the hardest part of the design.">สัญญาณที่ผิวหนังประมาณ 0.5–3 mV ส่วนสัญญาณรบกวนจากไฟบ้านอาจแรงกว่า 100 เท่า การตัดสัญญาณรบกวนจึงเป็นส่วนที่ยากที่สุดของการออกแบบ</text>
+          <text class="s" x="10" y="202" data-en="Only I, II and V1–V6 are measured; III, aVR, aVL and aVF are calculated (Einthoven: II = I + III).">เครื่องวัดจริงเพียง I, II และ V1–V6 ส่วน III, aVR, aVL, aVF คำนวณเอา (กฎ Einthoven: II = I + III)</text>
+        </g>
+      </svg>
+      <div class="legend">
+        <div><i>!</i><span data-en="<b>Most common error:</b> swapped or misplaced electrodes. Reversed arm leads can mimic disease, so technicians are trained to check placement first."><b>ความผิดพลาดที่พบบ่อยที่สุด</b> ติดขั้วสลับหรือผิดตำแหน่ง สายแขนสลับกันอาจดูเหมือนโรคได้ เจ้าหน้าที่จึงต้องตรวจตำแหน่งก่อนเสมอ</span></div>
+        <div><i>AI</i><span data-en="<b>Computer interpretation</b> has existed since the 1960s and is good at measuring intervals, but misreads rhythms often enough that a doctor must confirm every report."><b>การแปลผลด้วยคอมพิวเตอร์</b> มีมาตั้งแต่ทศวรรษ 1960 วัดช่วงเวลาได้แม่น แต่อ่านจังหวะผิดบ่อยพอที่แพทย์ต้องยืนยันทุกใบ</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- holter -->
+  <section id="s-holter" aria-labelledby="h-holter">
+    <div class="sec-head">
+      <span class="eyebrow" data-en="04 · Ambulatory monitoring">04 · บันทึกต่อเนื่อง</span>
+      <h2 id="h-holter" data-en="Holter and its relatives: longer recording, fewer views">Holter และเครื่องที่ใกล้เคียง: บันทึกนานขึ้น แต่มุมมองน้อยลง</h2>
+      <p data-en="A 10-second ECG misses symptoms that come once a day or once a month. The rarer the symptom, the longer the monitor needs to be worn.">ECG 10 วินาทีพลาดอาการที่เกิดวันละครั้งหรือเดือนละครั้ง ยิ่งอาการเกิดนาน ๆ ครั้ง ยิ่งต้องใช้เครื่องที่ติดได้นานขึ้น</p>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th data-en="Device">อุปกรณ์</th><th data-en="Duration">ระยะเวลา</th><th data-en="Channels">ช่องสัญญาณ</th><th data-en="Best for">เหมาะกับ</th><th data-en="Limitation">ข้อจำกัด</th></tr></thead>
+      <tbody>
+        <tr><td data-en="<b>Resting 12-lead ECG</b>"><b>ECG 12 lead ขณะพัก</b></td><td data-en="10 seconds">10 วินาที</td><td>12</td><td data-en="Heart attack, structure clues, baseline">กล้ามเนื้อหัวใจขาดเลือด, ร่องรอยโครงสร้างหัวใจ, ค่าพื้นฐาน</td><td data-en="A snapshot; misses intermittent problems">เป็นภาพนิ่งช่วงสั้น พลาดอาการที่เป็นพัก ๆ</td></tr>
+        <tr><td data-en="<b>Holter monitor</b>"><b>Holter</b></td><td data-en="24–48 h (up to 7 days)">24–48 ชม. (บางรุ่นถึง 7 วัน)</td><td data-en="2–3, some 12">2–3 (บางรุ่น 12)</td><td data-en="Daily palpitations, AF burden, pacemaker check, heart-rate variability">ใจสั่นทุกวัน, ปริมาณ AF, ตรวจเครื่องกระตุ้นหัวใจ, HRV</td><td data-en="Wires; no showering; short window">มีสายระโยงระยาง อาบน้ำไม่ได้ ช่วงเวลาสั้น</td></tr>
+        <tr><td data-en="<b>ECG patch</b>"><b>แผ่นแปะ ECG</b></td><td data-en="up to 14 days">สูงสุด 14 วัน</td><td>1</td><td data-en="Weekly palpitations; easier to wear">ใจสั่นสัปดาห์ละครั้ง ใส่สบายกว่า</td><td data-en="Single lead, analysed after removal">มีช่องเดียว แปลผลหลังถอด</td></tr>
+        <tr><td data-en="<b>Event / external loop recorder</b>"><b>Event / external loop recorder</b></td><td data-en="up to 30 days">สูงสุด 30 วัน</td><td>1–2</td><td data-en="Monthly symptoms; patient presses a button">อาการเดือนละครั้ง ผู้ป่วยกดปุ่มบันทึก</td><td data-en="Depends on the patient pressing">ขึ้นกับการกดบันทึกของผู้ป่วย</td></tr>
+        <tr><td data-en="<b>Mobile cardiac telemetry</b>"><b>Mobile cardiac telemetry</b></td><td data-en="up to 30 days">สูงสุด 30 วัน</td><td>1–3</td><td data-en="Real-time alerts to a monitoring centre">ส่งสัญญาณเตือนแบบเรียลไทม์ไปศูนย์เฝ้าระวัง</td><td data-en="Cost; needs a monitoring service">ราคาสูง ต้องมีศูนย์รับสัญญาณ</td></tr>
+        <tr><td data-en="<b>Implantable loop recorder</b>"><b>เครื่องบันทึกแบบฝังใต้ผิวหนัง</b></td><td data-en="about 3 years">ประมาณ 3 ปี</td><td>1</td><td data-en="Unexplained fainting, hidden AF after stroke">หมดสติไม่ทราบสาเหตุ, หา AF แฝงหลังอัมพาต</td><td data-en="Minor procedure to insert">ต้องทำหัตถการเล็กเพื่อฝัง</td></tr>
+        <tr><td data-en="<b>Smartwatch ECG</b>"><b>ECG จากนาฬิกา</b></td><td data-en="30 s on demand">30 วินาที เมื่อกดวัด</td><td>1</td><td data-en="Capturing AF during symptoms">บันทึก AF ขณะมีอาการ</td><td data-en="Cannot detect ischaemia; see the wearables page">ตรวจภาวะขาดเลือดไม่ได้ ดูหน้า wearable</td></tr>
+      </tbody>
+    </table></div>
+    <div class="two" style="margin-top:16px">
+      <div class="card"><h3 data-en="Parts of a Holter system">ส่วนประกอบของ Holter</h3><ul>
+        <li data-en="<b>Recorder</b> the size of a phone or smaller, with memory and battery, clipped to a belt or neck strap"><b>เครื่องบันทึก</b> ขนาดเท่าโทรศัพท์หรือเล็กกว่า มีหน่วยความจำและแบตเตอรี่ คาดเอวหรือคล้องคอ</li>
+        <li data-en="<b>5–7 chest electrodes</b> placed over bone to reduce muscle noise"><b>ขั้วไฟฟ้า 5–7 จุดบนหน้าอก</b> วางบนกระดูกเพื่อลดสัญญาณรบกวนจากกล้ามเนื้อ</li>
+        <li data-en="<b>Event button and diary</b> to link symptoms to the recording"><b>ปุ่มบันทึกเหตุการณ์และสมุดบันทึกอาการ</b> เพื่อจับคู่อาการกับคลื่น</li>
+        <li data-en="<b>Analysis software</b> scans about 100,000 beats a day, then a technician and cardiologist review and report"><b>ซอฟต์แวร์วิเคราะห์</b> คัดกรองราว 100,000 ครั้งที่หัวใจเต้นต่อวัน แล้วเจ้าหน้าที่และแพทย์โรคหัวใจทบทวนและเขียนรายงาน</li>
+      </ul></div>
+      <div class="card"><h3 data-en="Tips while wearing one">ข้อควรทำระหว่างติดเครื่อง</h3><ul>
+        <li data-en="Live and exercise normally, so the recording reflects real life">ใช้ชีวิตและออกกำลังกายตามปกติ เพื่อให้ได้ข้อมูลจริง</li>
+        <li data-en="Write down time and symptom for every episode">จดเวลาและอาการทุกครั้งที่รู้สึกผิดปกติ</li>
+        <li data-en="Keep it dry unless the device is waterproof; avoid electric blankets and MRI">อย่าให้เปียกถ้าเครื่องไม่กันน้ำ หลีกเลี่ยงผ้าห่มไฟฟ้าและการตรวจ MRI</li>
+        <li data-en="If an electrode peels, press it back rather than removing it">ถ้าแผ่นขั้วลอก ให้กดกลับ ไม่ควรดึงออก</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- history -->
+  <section id="s-history" aria-labelledby="h-history">
+    <div class="sec-head">
+      <span class="eyebrow" data-en="05 · History">05 · ประวัติ</span>
+      <h2 id="h-history" data-en="From a 270 kg machine to a sticker on the chest">จากเครื่องหนัก 270 กิโลกรัม สู่แผ่นแปะบนหน้าอก</h2>
+    </div>
+    <div class="timeline">
+      <div class="ev"><span class="yr">1887</span><h4 data-en="First human ECG">ECG ของมนุษย์ครั้งแรก</h4><p data-en="Augustus Waller in London recorded the heartbeat with a capillary electrometer.">Augustus Waller ในลอนดอนบันทึกการเต้นของหัวใจด้วย capillary electrometer</p></div>
+      <div class="ev"><span class="yr">1901–1903</span><h4 data-en="Einthoven’s string galvanometer">เครื่อง string galvanometer ของ Einthoven</h4><p data-en="Willem Einthoven built a precise recorder weighing around 270 kg that needed several people to run. He named the P, Q, R, S, T waves and defined leads I, II and III; he won the Nobel Prize in 1924.">Willem Einthoven สร้างเครื่องบันทึกที่แม่นยำ หนักราว 270 กิโลกรัม ต้องใช้คนควบคุมหลายคน เขาตั้งชื่อคลื่น P, Q, R, S, T และกำหนด lead I, II, III ได้รับรางวัลโนเบลปี 1924</p></div>
+      <div class="ev"><span class="yr">1934–1938</span><h4 data-en="Chest leads">lead ที่หน้าอก</h4><p data-en="Frank Wilson created a central reference point; in 1938 American and British cardiology societies standardised chest positions V1–V6.">Frank Wilson สร้างจุดอ้างอิงกลาง และปี 1938 สมาคมโรคหัวใจอเมริกาและอังกฤษกำหนดตำแหน่ง V1–V6 เป็นมาตรฐาน</p></div>
+      <div class="ev"><span class="yr">1942</span><h4 data-en="12 leads complete">ครบ 12 lead</h4><p data-en="Emanuel Goldberger added the augmented leads aVR, aVL and aVF, giving the 12-lead ECG still used today.">Emanuel Goldberger เพิ่ม lead aVR, aVL, aVF จนได้ ECG 12 lead ที่ใช้มาถึงปัจจุบัน</p></div>
+      <div class="ev"><span class="yr">1949</span><h4 data-en="Holter’s backpack">เป้หลังของ Holter</h4><p data-en="Biophysicist Norman Holter transmitted an ECG by radio from a backpack weighing about 38 kg. It shrank into a portable tape recorder and entered clinical use in the early 1960s.">นักชีวฟิสิกส์ Norman Holter ส่ง ECG ทางวิทยุจากเป้หนักราว 38 กิโลกรัม ต่อมาย่อลงเป็นเครื่องบันทึกเทปพกพา และเริ่มใช้ทางคลินิกช่วงต้นทศวรรษ 1960</p></div>
+      <div class="ev"><span class="yr">1960s</span><h4 data-en="Computer interpretation">แปลผลด้วยคอมพิวเตอร์</h4><p data-en="The first programs for automatic ECG measurement and diagnosis appeared.">เริ่มมีโปรแกรมวัดและแปลผล ECG อัตโนมัติ</p></div>
+      <div class="ev"><span class="yr">2010s</span><h4 data-en="Patches and implants">แผ่นแปะและเครื่องฝัง</h4><p data-en="Wire-free patches for 14 days and implantable loop recorders for years made long monitoring routine.">แผ่นแปะไร้สาย 14 วันและเครื่องฝังที่บันทึกได้หลายปี ทำให้การติดตามระยะยาวเป็นเรื่องปกติ</p></div>
+      <div class="ev"><span class="yr">2018</span><h4 data-en="ECG on the wrist">ECG บนข้อมือ</h4><p data-en="FDA cleared the Apple Watch single-lead ECG app; many wearables followed.">FDA อนุมัติแอป ECG 1 lead บน Apple Watch และ wearable อื่นตามมา</p></div>
+    </div>
+  </section>
+
+  <!-- use -->
+  <section id="s-use" aria-labelledby="h-use">
+    <div class="sec-head">
+      <span class="eyebrow" data-en="06 · Uses and limits">06 · การใช้และข้อจำกัด</span>
+      <h2 id="h-use" data-en="When it matters most">ใช้เมื่อไร และต้องระวังอะไร</h2>
+    </div>
+    <div class="two">
+      <div class="card"><h3 data-en="Key uses">การใช้หลัก</h3><ul>
+        <li data-en="<b>Chest pain:</b> a 12-lead within 10 minutes decides whether to open the artery urgently (STEMI)"><b>เจ็บหน้าอก</b> ECG 12 lead ภายใน 10 นาทีใช้ตัดสินว่าต้องเปิดหลอดเลือดด่วนหรือไม่ (STEMI)</li>
+        <li data-en="<b>Palpitations, fainting, dizziness:</b> find the rhythm; use a Holter or longer monitor if the resting ECG is normal"><b>ใจสั่น หน้ามืด หมดสติ</b> หาจังหวะที่ผิดปกติ ถ้า ECG ขณะพักปกติ ให้ใช้ Holter หรือเครื่องที่ติดนานกว่า</li>
+        <li data-en="<b>Blood chemistry and drugs:</b> potassium, calcium and many medicines change the waves and the QT interval"><b>เกลือแร่และยา</b> โพแทสเซียม แคลเซียม และยาหลายชนิดเปลี่ยนรูปคลื่นและช่วง QT</li>
+        <li data-en="<b>Before surgery and check-ups:</b> a baseline for comparison later"><b>ก่อนผ่าตัดและตรวจสุขภาพ</b> เก็บค่าพื้นฐานไว้เทียบในอนาคต</li>
+      </ul></div>
+      <div class="card"><h3 data-en="Limits">ข้อจำกัด</h3><ul>
+        <li data-en="A normal ECG does not rule out coronary disease; stress testing or CT angiography may be needed">ECG ปกติไม่ได้แปลว่าไม่มีโรคหลอดเลือดหัวใจ อาจต้องตรวจวิ่งสายพานหรือ CT หลอดเลือดหัวใจ</li>
+        <li data-en="It shows electricity, not pumping strength or valves; that needs an echocardiogram">ECG แสดงไฟฟ้า ไม่ได้บอกแรงบีบหรือลิ้นหัวใจ ต้องใช้คลื่นเสียงสะท้อนหัวใจ (echo)</li>
+        <li data-en="Repeat ECGs matter: a heart attack can evolve over minutes to hours">การทำซ้ำสำคัญ กล้ามเนื้อหัวใจขาดเลือดอาจเปลี่ยนแปลงภายในไม่กี่นาทีถึงหลายชั่วโมง</li>
+      </ul></div>
+    </div>
+    <p class="note" style="margin-top:16px" data-en="In Thailand, chest pain calls go to 1669. Many provinces run STEMI networks where community hospitals send 12-lead ECGs to cardiologists for remote reading and fast referral for clot-busting drugs or catheterisation. Check your province’s current network.">ในประเทศไทย เจ็บหน้าอกเฉียบพลันโทร 1669 หลายจังหวัดมีเครือข่าย STEMI ที่โรงพยาบาลชุมชนส่ง ECG 12 lead ให้แพทย์โรคหัวใจอ่านทางไกล และส่งต่อเพื่อให้ยาละลายลิ่มเลือดหรือสวนหัวใจได้เร็ว ควรตรวจสอบเครือข่ายของจังหวัดตนเอง</p>
+  </section>
+
+  <footer><p data-en="For education only, not medical advice. The waveform is simulated; real ECGs vary between people. Product names are trademarks of their owners.">เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำทางการแพทย์ คลื่นในหน้านี้เป็นคลื่นจำลอง ECG จริงแตกต่างกันในแต่ละคน ชื่อผลิตภัณฑ์เป็นเครื่องหมายการค้าของเจ้าของแต่ละราย</p></footer>
+</div>
+
+<script>
+var T=function(th,en){return window.HWS?HWS.t(th,en):th;};
+
+/* ---------- Lead explorer ---------- */
+var EL={RA:[46,292],LA:[354,292],RL:[158,438],LL:[242,438],V1:[186,172],V2:[214,172],V3:[228,192],V4:[246,212],V5:[274,214],V6:[300,216]};
+var LEADS={
+  I:{t:'limb',pos:['LA'],neg:['RA'],wall:'lat',calc:['ขั้วแขนซ้าย (+) เทียบแขนขวา (−)','Left arm (+) vs right arm (−)']},
+  II:{t:'limb',pos:['LL'],neg:['RA'],wall:'inf',calc:['ขาซ้าย (+) เทียบแขนขวา (−) เห็นคลื่น P ชัดที่สุด ใช้เป็นแถบจังหวะ','Left leg (+) vs right arm (−); clearest P waves, used as the rhythm strip']},
+  III:{t:'limb',pos:['LL'],neg:['LA'],wall:'inf',calc:['ขาซ้าย (+) เทียบแขนซ้าย (−) คำนวณจาก II − I','Left leg (+) vs left arm (−); calculated as II − I']},
+  aVR:{t:'aug',pos:['RA'],neg:['LA','LL'],wall:null,calc:['แขนขวาเทียบค่าเฉลี่ยของแขนซ้ายกับขาซ้าย มองเข้าโพรงหัวใจจากด้านขวาบน คลื่นปกติจึงกลับหัว','Right arm vs the average of left arm and left leg; looks into the cavity from the upper right, so normal waves are inverted']},
+  aVL:{t:'aug',pos:['LA'],neg:['RA','LL'],wall:'lat',calc:['แขนซ้ายเทียบค่าเฉลี่ยของแขนขวากับขาซ้าย','Left arm vs the average of right arm and left leg']},
+  aVF:{t:'aug',pos:['LL'],neg:['RA','LA'],wall:'inf',calc:['ขาซ้ายเทียบค่าเฉลี่ยของแขนทั้งสอง','Left leg vs the average of both arms']},
+  V1:{t:'chest',pos:['V1'],neg:['RA','LA','LL'],wall:'sep',calc:['ช่องซี่โครงที่ 4 ขอบขวาของกระดูกหน้าอก','4th intercostal space, right edge of the sternum']},
+  V2:{t:'chest',pos:['V2'],neg:['RA','LA','LL'],wall:'sep',calc:['ช่องซี่โครงที่ 4 ขอบซ้ายของกระดูกหน้าอก','4th intercostal space, left edge of the sternum']},
+  V3:{t:'chest',pos:['V3'],neg:['RA','LA','LL'],wall:'ant',calc:['กึ่งกลางระหว่าง V2 กับ V4','Midway between V2 and V4']},
+  V4:{t:'chest',pos:['V4'],neg:['RA','LA','LL'],wall:'ant',calc:['ช่องซี่โครงที่ 5 แนวกึ่งกลางกระดูกไหปลาร้า','5th intercostal space, mid-clavicular line']},
+  V5:{t:'chest',pos:['V5'],neg:['RA','LA','LL'],wall:'lat',calc:['ระดับเดียวกับ V4 แนวหน้ารักแร้','Level with V4, anterior axillary line']},
+  V6:{t:'chest',pos:['V6'],neg:['RA','LA','LL'],wall:'lat',calc:['ระดับเดียวกับ V4 แนวกลางรักแร้','Level with V4, mid-axillary line']}
+};
+var WALL={inf:['ผนังด้านล่าง (inferior)','Inferior wall','มักเลี้ยงด้วยหลอดเลือด RCA (ขวา)','Usually supplied by the right coronary artery (RCA)'],
+  lat:['ผนังด้านข้าง (lateral)','Lateral wall','มักเลี้ยงด้วยหลอดเลือด LCx (circumflex)','Usually supplied by the circumflex artery (LCx)'],
+  sep:['ผนังกั้นห้อง (septal)','Septal wall','เลี้ยงด้วยหลอดเลือด LAD','Supplied by the left anterior descending artery (LAD)'],
+  ant:['ผนังด้านหน้า (anterior)','Anterior wall','เลี้ยงด้วยหลอดเลือด LAD','Supplied by the left anterior descending artery (LAD)']};
+var TYPE={limb:['lead แขนขา (bipolar)','Limb lead (bipolar)'],aug:['lead แขนขาเสริม (augmented)','Augmented limb lead'],chest:['lead หน้าอก (precordial)','Chest (precordial) lead']};
+var cur='II';
+(function(){
+  var g=document.getElementById('els'),NS='http://www.w3.org/2000/svg';
+  Object.keys(EL).forEach(function(k){
+    var c=document.createElementNS(NS,'circle');c.setAttribute('cx',EL[k][0]);c.setAttribute('cy',EL[k][1]);c.setAttribute('r',k[0]==='V'?8:11);c.setAttribute('class','el');c.id='e-'+k;g.appendChild(c);
+    var t=document.createElementNS(NS,'text');t.setAttribute('class','elt');t.id='t-'+k;t.textContent=k;
+    var dx=k==='V3'?-16:0,dy=k[0]==='V'?(k==='V1'||k==='V2'?-14:(k==='V3'?4:22)):(k==='RL'||k==='LL'?-18:26);
+    t.setAttribute('x',EL[k][0]+dx);t.setAttribute('y',EL[k][1]+dy);t.setAttribute('text-anchor','middle');g.appendChild(t);
+  });
+  var vec=document.createElementNS(NS,'line');vec.setAttribute('class','vec');vec.id='vec';vec.setAttribute('marker-end','url(#varrow)');
+  var defs=document.createElementNS(NS,'defs');defs.innerHTML='<marker id="varrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--accent)"/></marker>';
+  g.parentNode.insertBefore(defs,g);g.appendChild(vec);
+  var box=document.getElementById('leadBtns');
+  Object.keys(LEADS).forEach(function(k,i){
+    if(i===3||i===6){var s=document.createElement('span');s.className='sep';box.appendChild(s);}
+    var b=document.createElement('button');b.type='button';b.textContent=k;b.dataset.l=k;b.addEventListener('click',function(){cur=k;renderLead();});box.appendChild(b);
+  });
+})();
+function renderLead(){
+  var L=LEADS[cur];
+  document.querySelectorAll('#leadBtns button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.l===cur);});
+  Object.keys(EL).forEach(function(k){
+    var c=document.getElementById('e-'+k),t=document.getElementById('t-'+k);
+    var p=L.pos.indexOf(k)>=0,n=L.neg.indexOf(k)>=0;
+    c.setAttribute('class','el'+(p?' on':n?' neg':''));t.setAttribute('class','elt'+(p||n?' on':''));
+  });
+  // arrow from the (averaged) negative pole to the positive pole
+  var nx=0,ny=0;L.neg.forEach(function(k){nx+=EL[k][0];ny+=EL[k][1];});nx/=L.neg.length;ny/=L.neg.length;
+  if(L.t==='chest'){nx=200;ny=250;}
+  var px=EL[L.pos[0]][0],py=EL[L.pos[0]][1],dx=px-nx,dy=py-ny,d=Math.hypot(dx,dy)||1;
+  var v=document.getElementById('vec');v.setAttribute('x1',nx);v.setAttribute('y1',ny);v.setAttribute('x2',px-dx/d*14);v.setAttribute('y2',py-dy/d*14);
+  ['inf','lat','sep','ant'].forEach(function(w){document.getElementById('w-'+w).setAttribute('class','wall'+(L.wall===w?' on':''));});
+  var en=window.HWS&&HWS.lang()==='en';
+  document.getElementById('l-type').textContent=TYPE[L.t][en?1:0];
+  document.getElementById('l-name').textContent='Lead '+cur;
+  document.getElementById('l-calc').textContent=L.calc[en?1:0];
+  var W=L.wall?WALL[L.wall]:null;
+  document.getElementById('l-wall').innerHTML=W?('<b>'+T('มองเห็น: ','Watches: ')+'</b>'+W[en?1:0]):('<b>'+T('มองเห็น: ','Watches: ')+'</b>'+T('ไม่ได้มองผนังใดโดยตรง','no single wall directly'));
+  document.getElementById('l-art').textContent=W?W[en?3:2]:T('ST ยกใน aVR ร่วมกับ ST กดหลาย lead อาจบ่งชี้หลอดเลือดหลักซ้ายตีบ','ST elevation in aVR with widespread ST depression can signal left main disease');
+}
+
+/* ---------- Waveform strip ---------- */
+var rhythm='nsr',svg=document.getElementById('strip'),NS='http://www.w3.org/2000/svg';
+var PX_MS=0.2,PX_MV=80,BASE=150; // 25 mm/s with 1 mm = 8 px → 0.2 px per ms; 10 mm/mV
+function gauss(t,c,s,a){var x=(t-c)/s;return a*Math.exp(-0.5*x*x);}
+function seeded(n){var x=Math.sin(n*12.9898)*43758.5453;return x-Math.floor(x);}
+function beatV(t,sc,r){
+  var P=r==='af'?0:0.15, st=r==='stemi'?0.35:0, Ta=r==='hyperk'?0.85:(r==='stemi'?0.5:0.3), Ts=r==='hyperk'?24:48;
+  var c=function(ms){return ms*sc;};
+  var v=gauss(t,c(100),c(22),P);
+  v+=gauss(t,c(222),9,-0.1)+gauss(t,c(240),10,r==='hyperk'?0.9:1.25)+gauss(t,c(262),9,-0.28);
+  if(st){ var a=c(270),b=c(470); if(t>a&&t<b){var u=(t-a)/(b-a);v+=st*Math.sin(Math.PI*Math.min(1,u*1.6))*(u<0.7?1:1-(u-0.7)/0.3);} }
+  v+=gauss(t,c(r==='hyperk'?420:460),Ts*(r==='hyperk'?1:sc),Ta);
+  return v;
+}
+function drawStrip(){
+  var hr=+document.getElementById('hr').value; document.getElementById('hrv').textContent=hr;
+  var rr=60000/hr, sc=Math.max(0.72,Math.min(1.12,Math.sqrt(rr/800)));
+  var out=[], W=1000, totalMs=W/PX_MV*0+W/PX_MS;
+  // beat start times
+  var starts=[],t0=-200,k=0;
+  while(t0<totalMs){starts.push(t0);var rri=rr;if(rhythm==='af')rri=rr*(0.6+0.8*seeded(k+1));t0+=rri;k++;}
+  var d='';
+  for(var t=0;t<=totalMs;t+=4){
+    var v=0;for(var i=0;i<starts.length;i++){var dt=t-starts[i];if(dt>-50&&dt<900)v+=beatV(dt,sc,rhythm);}
+    if(rhythm==='af')v+=0.05*Math.sin(t/23)+0.035*Math.sin(t/37+1)+0.02*Math.sin(t/11);
+    d+=(t?'L':'M')+(t*PX_MS).toFixed(1)+' '+(BASE-v*PX_MV).toFixed(1);
+  }
+  var g='';
+  for(var x=0;x<=1000;x+=8)g+='<line x1="'+x+'" y1="0" x2="'+x+'" y2="290" stroke="'+(x%40?'#F6D5CF':'#E9A89C')+'" stroke-width="'+(x%40?0.6:1.1)+'"/>';
+  for(var y=0;y<=290;y+=8)g+='<line x1="0" y1="'+y+'" x2="1000" y2="'+y+'" stroke="'+(y%40?'#F6D5CF':'#E9A89C')+'" stroke-width="'+(y%40?0.6:1.1)+'"/>';
+  // annotate the second beat
+  var b=starts[2], A='';
+  if(b!=null){
+    var X=function(ms){return ((b+ms*sc)*PX_MS).toFixed(1);}, lab=function(x,y,s){return '<text x="'+x+'" y="'+y+'" font-family="IBM Plex Mono,monospace" font-size="12" fill="#1F2B29" text-anchor="middle">'+s+'</text>';};
+    if(rhythm!=='af')A+=lab(X(100),BASE-20,'P');
+    A+=lab(X(240),BASE-(rhythm==='hyperk'?80:108),'R')+lab(X(214),BASE+22,'Q')+lab(X(268),BASE+34,'S')+lab(X(rhythm==='hyperk'?420:460),BASE-(rhythm==='hyperk'?78:rhythm==='stemi'?74:34),'T');
+    var br=function(x1,x2,y,s){return '<path d="M'+x1+' '+(y-4)+'V'+y+'H'+x2+'V'+(y-4)+'" stroke="#0B7A63" stroke-width="1.5" fill="none"/>'+'<text x="'+((+x1+ +x2)/2)+'" y="'+(y+13)+'" font-family="IBM Plex Mono,monospace" font-size="11" fill="#0B7A63" text-anchor="middle">'+s+'</text>';};
+    if(rhythm!=='af')A+=br(X(70),X(212),222,'PR');
+    A+=br(X(212),X(272),246,'QRS');
+    A+=br(X(212),X(rhythm==='hyperk'?470:560),270,'QT');
+  }
+  svg.innerHTML=g+'<path d="'+d+'" fill="none" stroke="#1F2B29" stroke-width="1.6" stroke-linejoin="round"/>'+A+
+    '<text x="6" y="16" font-family="IBM Plex Mono,monospace" font-size="12" fill="#8A3B2E">II · 25 mm/s · 10 mm/mV</text>';
+  var pr=Math.round(142*sc), qrs=Math.round(60*sc+30), qt=Math.round((rhythm==='hyperk'?258:348)*sc), qtc=Math.round(qt/Math.sqrt(rr/1000));
+  var cells=[[T('อัตราการเต้น','Heart rate'),hr+' /min'],[T('ช่วง RR','RR interval'),(rhythm==='af'?T('ไม่สม่ำเสมอ','irregular'):Math.round(rr)+' ms')],
+    ['PR',rhythm==='af'?T('ไม่มี P','no P'):pr+' ms'],['QRS',qrs+' ms'],['QT',qt+' ms'],['QTc (Bazett)',qtc+' ms']];
+  document.getElementById('readout').innerHTML=cells.map(function(c){return '<div><span>'+c[0]+'</span><b>'+c[1]+'</b></div>';}).join('');
+  var notes={nsr:['จังหวะไซนัสปกติ: P นำหน้า QRS ทุกครั้ง ระยะห่างสม่ำเสมอ','Normal sinus rhythm: a P wave before every QRS, evenly spaced'],
+    af:['AF: ไม่มีคลื่น P เส้นฐานสั่นพลิ้ว และระยะ RR ไม่สม่ำเสมอ เพิ่มความเสี่ยงลิ่มเลือดและอัมพาต เป็นสิ่งที่นาฬิกาอัจฉริยะจับได้ดี','AF: no P waves, a quivering baseline and irregular RR. It raises stroke risk and is what smartwatches detect well'],
+    stemi:['ST ยก: ช่วงหลัง QRS ยกสูงกว่าเส้นฐาน ถ้าพบใน lead ที่มองผนังเดียวกันร่วมกับเจ็บหน้าอก ต้องเปิดหลอดเลือดโดยเร็ว นาฬิกา 1 lead ไม่สามารถใช้คัดกรองภาวะนี้ได้','ST elevation: the segment after QRS sits above baseline. With chest pain and matching leads, the artery must be opened fast. A one-lead watch cannot screen for this'],
+    hyperk:['โพแทสเซียมสูง: คลื่น T สูงแหลมและแคบ ถ้ารุนแรงขึ้น QRS จะกว้างและเสี่ยงหัวใจหยุดเต้น พบในผู้ป่วยไตวายหรือได้ยาบางชนิด','High potassium: tall, narrow, peaked T waves; if worse, QRS widens and arrest risk rises. Seen in kidney failure or with some drugs']};
+  document.getElementById('rnote').textContent=notes[rhythm][window.HWS&&HWS.lang()==='en'?1:0];
+}
+document.querySelectorAll('.strip-ctrl button').forEach(function(b){b.addEventListener('click',function(){rhythm=b.dataset.r;document.querySelectorAll('.strip-ctrl button').forEach(function(x){x.setAttribute('aria-pressed',x===b);});drawStrip();});});
+document.getElementById('hr').addEventListener('input',drawStrip);
+document.addEventListener('langchange',function(){renderLead();drawStrip();});
+renderLead();drawStrip();
+</script>
+</body>
+</html>

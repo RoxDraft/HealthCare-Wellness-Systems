@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>แผนที่ระบบสุขภาพไทย</title>
+<script src="../assets/i18n.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -149,7 +150,7 @@ footer{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:
 <body>
 
 <div class="wrap">
-<nav style="font-size:13px;font-family:var(--mono)"><a href="../index.html" style="color:var(--accent)">← หน้าหลัก</a> · <a href="../medical-tech/index.html" style="color:var(--accent)">เทคโนโลยีการแพทย์</a></nav>
+<nav style="font-size:13px;font-family:var(--mono)"><a href="../index.html" style="color:var(--accent)" data-en="← Home">← หน้าหลัก</a> · <a href="../medical-tech/index.html" style="color:var(--accent)" data-en="Medical technology">เทคโนโลยีการแพทย์</a></nav>
 <header class="top">
   <div class="topbar">
     <span class="eyebrow" data-t="eyebrow"></span>
@@ -242,7 +243,7 @@ footer{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:
 (function(){
 /* ================= i18n ================= */
 let lang='th';
-try{const s=localStorage.getItem('hsm-lang');if(s==='en'||s==='th')lang=s;}catch(e){}
+try{const s=localStorage.getItem('hws-lang');if(s==='en'||s==='th')lang=s;}catch(e){}
 const t=x=>x==null?'':(typeof x==='string'?x:x[lang==='en'?1:0]);
 const STR={
  eyebrow:['ระบบสุขภาพไทย × เครือข่ายสุขภาพโลก · ฉบับ พ.ย. 2569','Thai health system × global health network · Nov 2026'],
@@ -798,7 +799,7 @@ function select(nd){selected=nd;renderPanel();refresh();if(nd&&gl){gl.controls.a
 
 /* ================= Boot & language ================= */
 function renderAll(){renderStatic();renderActors();renderCare();renderCompare();renderMatrix();renderTable();renderToolbar();renderPanel();renderLabels();}
-function setLang(l){lang=l;try{localStorage.setItem('hsm-lang',l);}catch(err){}renderAll();}
+function setLang(l){lang=l;try{localStorage.setItem('hws-lang',l);}catch(err){}renderAll();if(window.HWS)HWS.setLang(l);}
 document.getElementById('lang-th').onclick=()=>setLang('th');
 document.getElementById('lang-en').onclick=()=>setLang('en');
 setCountry(byCode.TH);

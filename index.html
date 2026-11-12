@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
+<script src="assets/i18n.js"></script>
 <script src="assets/theme.js"></script>
 <style>
 .hero{display:flex;flex-direction:column;gap:14px;padding-top:24px}
@@ -28,47 +29,47 @@ ol.steps{padding:0;margin:0}
 <div class="wrap">
   <nav class="sitenav" aria-label="เมนูหลัก">
     <span class="crumbs"><strong style="color:var(--fg)">HealthCare &amp; Wellness Systems</strong></span>
-    <button class="theme-btn" type="button">☾ มืด</button>
+    <span style="display:flex;gap:6px"><button class="lang-btn" type="button">EN</button><button class="theme-btn" type="button">☾ มืด</button></span>
   </nav>
 
   <header class="hero">
-    <span class="eyebrow">คลังความรู้ระบบสุขภาพ</span>
-    <h1>จากระบบสุขภาพทั้งประเทศ ถึงอุปกรณ์บนข้อมือและในห้องผ่าตัด</h1>
-    <p class="lead">เว็บนี้รวมเครื่องมือสำหรับวางแผนคู่มือนิสัยสุขภาพเฉพาะบุคคล ตั้งแต่ภาพรวมว่าใครจ่ายเงิน ใครกำกับ และใครให้บริการในระบบสุขภาพไทย ไปจนถึงการแยกส่วนอุปกรณ์และเทคโนโลยีการแพทย์ว่าวัดอะไร ทำงานอย่างไร และน่าเชื่อถือแค่ไหน</p>
+    <span class="eyebrow" data-en="Health knowledge hub">คลังความรู้ระบบสุขภาพ</span>
+    <h1 data-en="From a nation’s health system to the device on your wrist and in the operating room">จากระบบสุขภาพทั้งประเทศ ถึงอุปกรณ์บนข้อมือและในห้องผ่าตัด</h1>
+    <p class="lead" data-en="Tools for planning personalised health-habit guides: who pays, who regulates and who delivers care in Thailand’s health system, and a breakdown of medical devices and technologies — what they measure, how they work and how far to trust them.">เว็บนี้รวมเครื่องมือสำหรับวางแผนคู่มือนิสัยสุขภาพเฉพาะบุคคล ตั้งแต่ภาพรวมว่าใครจ่ายเงิน ใครกำกับ และใครให้บริการในระบบสุขภาพไทย ไปจนถึงการแยกส่วนอุปกรณ์และเทคโนโลยีการแพทย์ว่าวัดอะไร ทำงานอย่างไร และน่าเชื่อถือแค่ไหน</p>
   </header>
 
   <section aria-label="เมนู" class="big">
     <a class="card" href="health-system-map/index.html">
       <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M11 7.2 6.2 15.8M13 7.2l4.8 8.6M7.5 18h9"/></svg></div>
-      <span class="tag">01 · ระบบสาธารณสุข</span>
-      <h2>แผนที่ระบบสุขภาพไทย</h2>
-      <p>แบบจำลอง 3 มิติของความสัมพันธ์ระหว่าง สธ. สปสช. สปส. กรมบัญชีกลาง โรงพยาบาลรัฐและเอกชน กับ WHO และกองทุนระดับโลก พร้อมตารางลำดับความสำคัญและความเร่งด่วน</p>
-      <span class="go">เปิดแผนที่ →</span>
+      <span class="tag" data-en="01 · Public health system">01 · ระบบสาธารณสุข</span>
+      <h2 data-en="Thai Health System Map">แผนที่ระบบสุขภาพไทย</h2>
+      <p data-en="A 3D model of how MOPH, NHSO, SSO, the Comptroller General’s Department, public and private hospitals connect with WHO and global funds, plus a priority and urgency table.">แบบจำลอง 3 มิติของความสัมพันธ์ระหว่าง สธ. สปสช. สปส. กรมบัญชีกลาง โรงพยาบาลรัฐและเอกชน กับ WHO และกองทุนระดับโลก พร้อมตารางลำดับความสำคัญและความเร่งด่วน</p>
+      <span class="go" data-en="Open the map →">เปิดแผนที่ →</span>
     </a>
     <a class="card" href="medical-tech/index.html">
       <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="3" width="10" height="18" rx="4"/><path d="M10 12h1.5l1-2 1.5 4 1-2H15"/></svg></div>
-      <span class="tag">02 · อุปกรณ์และเทคโนโลยี</span>
-      <h2>Smart Device และเทคโนโลยีการแพทย์</h2>
-      <p>แยกส่วนอุปกรณ์ทีละชิ้น ตั้งแต่ wearable อย่าง Whoop และ Apple Watch ไปจนถึงหุ่นยนต์ผ่าตัด da Vinci แบบ 3D และ 2D พร้อมประวัติรุ่นและเคสที่ใช้</p>
-      <span class="go">เปิดเมนูย่อย →</span>
+      <span class="tag" data-en="02 · Devices and technology">02 · อุปกรณ์และเทคโนโลยี</span>
+      <h2 data-en="Smart Devices and Medical Technology">Smart Device และเทคโนโลยีการแพทย์</h2>
+      <p data-en="Device-by-device breakdowns: wearables like Whoop and Apple Watch, the da Vinci surgical robot, ECG and Holter, MRI and AEDs — with history, uses and limits.">แยกส่วนอุปกรณ์ทีละชิ้น ตั้งแต่ wearable อย่าง Whoop และ Apple Watch ไปจนถึงหุ่นยนต์ผ่าตัด da Vinci, ECG และ Holter, MRI และเครื่อง AED พร้อมประวัติ การใช้งาน และข้อจำกัด</p>
+      <span class="go" data-en="Open the submenu →">เปิดเมนูย่อย →</span>
     </a>
   </section>
 
   <section aria-labelledby="how">
     <div class="sec-head">
-      <span class="eyebrow">วิธีใช้ร่วมกัน</span>
-      <h2 id="how">ข้อมูลแต่ละชั้นใช้ทำอะไร</h2>
+      <span class="eyebrow" data-en="How it fits together">วิธีใช้ร่วมกัน</span>
+      <h2 id="how" data-en="What each layer is for">ข้อมูลแต่ละชั้นใช้ทำอะไร</h2>
     </div>
     <ol class="steps">
-      <li><b>ดูภาพใหญ่</b>รู้ว่าสิทธิการรักษาและบริการมาจากไหน เพื่อวางเส้นทางของผู้ป่วยแต่ละกลุ่ม</li>
-      <li><b>เลือกเครื่องมือวัด</b>แยกให้ออกว่าข้อมูลจาก wearable ใช้ติดตามนิสัย ส่วนอุปกรณ์การแพทย์ใช้ยืนยันและวินิจฉัย</li>
-      <li><b>เข้าใจการรักษา</b>รู้จักเทคโนโลยีที่ผู้ป่วยอาจเจอ เช่น การผ่าตัดด้วยหุ่นยนต์ ข้อดี ข้อจำกัด และค่าใช้จ่าย</li>
-      <li><b>สร้างนิสัยเฉพาะคน</b>นำทั้งหมดมาออกแบบนิสัยสุขภาพที่ติดตามได้และรู้ว่าเมื่อไรควรพบแพทย์</li>
+      <li data-en="<b>See the big picture</b>Know where coverage and services come from, so you can map each patient group’s journey"><b>ดูภาพใหญ่</b>รู้ว่าสิทธิการรักษาและบริการมาจากไหน เพื่อวางเส้นทางของผู้ป่วยแต่ละกลุ่ม</li>
+      <li data-en="<b>Pick the right measure</b>Wearable data tracks habits; medical devices confirm and diagnose"><b>เลือกเครื่องมือวัด</b>แยกให้ออกว่าข้อมูลจาก wearable ใช้ติดตามนิสัย ส่วนอุปกรณ์การแพทย์ใช้ยืนยันและวินิจฉัย</li>
+      <li data-en="<b>Understand treatment</b>Know the technology patients may meet, such as robotic surgery, with its benefits, limits and costs"><b>เข้าใจการรักษา</b>รู้จักเทคโนโลยีที่ผู้ป่วยอาจเจอ เช่น การผ่าตัดด้วยหุ่นยนต์ ข้อดี ข้อจำกัด และค่าใช้จ่าย</li>
+      <li data-en="<b>Build personal habits</b>Combine it all into trackable habits, and know when to see a doctor"><b>สร้างนิสัยเฉพาะคน</b>นำทั้งหมดมาออกแบบนิสัยสุขภาพที่ติดตามได้และรู้ว่าเมื่อไรควรพบแพทย์</li>
     </ol>
   </section>
 
   <footer>
-    <p>เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำทางการแพทย์ ชื่อผลิตภัณฑ์และเครื่องหมายการค้าเป็นของเจ้าของแต่ละราย เว็บนี้ไม่ได้มีส่วนเกี่ยวข้องกับบริษัทผู้ผลิตใด</p>
+    <p data-en="For education only, not medical advice. Product names and trademarks belong to their owners. This site is not affiliated with any manufacturer.">เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำทางการแพทย์ ชื่อผลิตภัณฑ์และเครื่องหมายการค้าเป็นของเจ้าของแต่ละราย เว็บนี้ไม่ได้มีส่วนเกี่ยวข้องกับบริษัทผู้ผลิตใด</p>
   </footer>
 </div>
 </body>

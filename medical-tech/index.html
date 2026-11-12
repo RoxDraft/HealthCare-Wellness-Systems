@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>เทคโนโลยีการแพทย์</title>
+<title data-en="Medical Technology">เทคโนโลยีการแพทย์</title>
 <meta name="description" content="เมนูย่อย Smart Device อุปกรณ์การแพทย์ และเทคโนโลยีการแพทย์">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="../assets/site.css">
+<script src="../assets/i18n.js"></script>
 <script src="../assets/theme.js"></script>
 <style>
 .cat{display:flex;flex-direction:column;gap:16px}
@@ -18,76 +19,90 @@
 .filter{display:flex;gap:8px;flex-wrap:wrap}
 .filter button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:5px 14px;cursor:pointer}
 .filter button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
-.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <nav class="sitenav" aria-label="เส้นทาง">
-    <span class="crumbs"><a href="../index.html">หน้าหลัก</a> / <span>เทคโนโลยีการแพทย์</span></span>
-    <button class="theme-btn" type="button">☾ มืด</button>
+  <nav class="sitenav" aria-label="เส้นทาง" data-en-label="Breadcrumb">
+    <span class="crumbs"><a href="../index.html" data-en="Home">หน้าหลัก</a> / <span data-en="Medical technology">เทคโนโลยีการแพทย์</span></span>
+    <span style="display:flex;gap:6px"><button class="lang-btn" type="button">EN</button><button class="theme-btn" type="button">☾ มืด</button></span>
   </nav>
 
   <header class="top">
-    <span class="eyebrow">เมนูย่อย · อุปกรณ์และเทคโนโลยี</span>
-    <h1>Smart Device และเทคโนโลยีการแพทย์</h1>
-    <p class="lead">เลือกอุปกรณ์เพื่อดูว่าข้างในมีอะไร ทำงานอย่างไร ใครพัฒนา ใช้กับเคสไหน และข้อมูลที่ได้น่าเชื่อถือแค่ไหน หน้าที่มีป้าย “พร้อมใช้” เปิดได้แล้ว ส่วนหน้าอื่นจะทยอยเพิ่ม</p>
-    <div class="filter" role="group" aria-label="กรองหมวด">
-      <button type="button" aria-pressed="true" data-f="all">ทั้งหมด</button>
-      <button type="button" aria-pressed="false" data-f="wear">Smart Device</button>
-      <button type="button" aria-pressed="false" data-f="surg">หุ่นยนต์ผ่าตัด</button>
-      <button type="button" aria-pressed="false" data-f="dx">วินิจฉัยและแล็บ</button>
-      <button type="button" aria-pressed="false" data-f="img">ภาพถ่ายทางการแพทย์</button>
+    <span class="eyebrow" data-en="Submenu · Devices and technology">เมนูย่อย · อุปกรณ์และเทคโนโลยี</span>
+    <h1 data-en="Smart Devices and Medical Technology">Smart Device และเทคโนโลยีการแพทย์</h1>
+    <p class="lead" data-en="Pick a device to see what is inside, how it works, who built it, which cases it serves and how trustworthy its data is. Pages marked “Ready” are live; the rest are coming.">เลือกอุปกรณ์เพื่อดูว่าข้างในมีอะไร ทำงานอย่างไร ใครพัฒนา ใช้กับเคสไหน และข้อมูลที่ได้น่าเชื่อถือแค่ไหน หน้าที่มีป้าย “พร้อมใช้” เปิดได้แล้ว ส่วนหน้าอื่นจะทยอยเพิ่ม</p>
+    <div class="filter" role="group" aria-label="กรองหมวด" data-en-label="Filter by category">
+      <button type="button" aria-pressed="true" data-f="all" data-en="All">ทั้งหมด</button>
+      <button type="button" aria-pressed="false" data-f="surg" data-en="Surgical robots">หุ่นยนต์ผ่าตัด</button>
+      <button type="button" aria-pressed="false" data-f="emg" data-en="Emergency">ฉุกเฉิน</button>
+      <button type="button" aria-pressed="false" data-f="dx" data-en="Diagnostics and lab">วินิจฉัยและแล็บ</button>
+      <button type="button" aria-pressed="false" data-f="img" data-en="Medical imaging">ภาพถ่ายทางการแพทย์</button>
+      <button type="button" aria-pressed="false" data-f="wear" data-en="Smart devices">Smart Device</button>
     </div>
   </header>
 
   <section class="cat" data-cat="surg" aria-labelledby="c-surg">
-    <div class="cat-head"><span class="n">A</span><h2 id="c-surg">หุ่นยนต์ช่วยผ่าตัด</h2>
-      <p>ระบบที่แปลงการขยับมือของศัลยแพทย์เป็นการเคลื่อนไหวของเครื่องมือขนาดเล็กในร่างกาย ช่วยเรื่องความแม่นยำ มุมมอง 3 มิติ และการตัดอาการมือสั่น</p></div>
+    <div class="cat-head"><span class="n">A</span><h2 id="c-surg" data-en="Robot-assisted surgery">หุ่นยนต์ช่วยผ่าตัด</h2>
+      <p data-en="Systems that turn the surgeon’s hand movements into motions of small instruments inside the body, adding precision, 3D vision and tremor filtering.">ระบบที่แปลงการขยับมือของศัลยแพทย์เป็นการเคลื่อนไหวของเครื่องมือขนาดเล็กในร่างกาย ช่วยเรื่องความแม่นยำ มุมมอง 3 มิติ และการตัดอาการมือสั่น</p></div>
     <div class="grid">
-      <a class="card" href="da-vinci.html"><span class="tag">Intuitive Surgical · ตั้งแต่ 1999</span><h3>da Vinci Surgical System</h3>
-        <p>โมเดล 3D แยกชิ้นส่วนได้ แผนภาพ 2D ของเครื่องมือ EndoWrist และระบบสั่งการ ประวัติทุกรุ่น จุดเริ่มต้นจากงานวิจัยผ่าตัดทางไกลของกองทัพสหรัฐฯ และเคสที่ใช้</p>
-        <span class="pill ok">พร้อมใช้</span><span class="go">เปิดหน้า →</span></a>
-      <div class="card soon"><span class="tag">Stryker</span><h3>Mako (ข้อเข่า/ข้อสะโพก)</h3><p>หุ่นยนต์ช่วยตัดกระดูกตามแผนจาก CT สำหรับผ่าตัดเปลี่ยนข้อ</p><span class="pill">เร็ว ๆ นี้</span></div>
-      <div class="card soon"><span class="tag">Medtronic · CMR · Medicaroid</span><h3>Hugo, Versius, hinotori</h3><p>คู่แข่งของ da Vinci เปรียบเทียบแนวคิดแขนแยกโมดูลและราคา</p><span class="pill">เร็ว ๆ นี้</span></div>
+      <a class="card" href="da-vinci.html"><span class="tag" data-en="Intuitive Surgical · since 1999">Intuitive Surgical · ตั้งแต่ 1999</span><h3>da Vinci Surgical System</h3>
+        <p data-en="Explodable 3D model, 2D diagrams of the EndoWrist instrument and control loop, every model since 1999, its roots in US military telesurgery research, and clinical uses.">โมเดล 3D แยกชิ้นส่วนได้ แผนภาพ 2D ของเครื่องมือ EndoWrist และระบบสั่งการ ประวัติทุกรุ่น จุดเริ่มต้นจากงานวิจัยผ่าตัดทางไกลของกองทัพสหรัฐฯ และเคสที่ใช้</p>
+        <span class="pill ok" data-en="Ready">พร้อมใช้</span><span class="go" data-en="Open →">เปิดหน้า →</span></a>
+      <div class="card soon"><span class="tag">Stryker</span><h3 data-en="Mako (knee/hip)">Mako (ข้อเข่า/ข้อสะโพก)</h3><p data-en="A robot that cuts bone to a CT-based plan for joint replacement.">หุ่นยนต์ช่วยตัดกระดูกตามแผนจาก CT สำหรับผ่าตัดเปลี่ยนข้อ</p><span class="pill" data-en="Coming soon">เร็ว ๆ นี้</span></div>
+      <div class="card soon"><span class="tag">Medtronic · CMR · Medicaroid</span><h3>Hugo, Versius, hinotori</h3><p data-en="da Vinci’s challengers: modular arms and pricing compared.">คู่แข่งของ da Vinci เปรียบเทียบแนวคิดแขนแยกโมดูลและราคา</p><span class="pill" data-en="Coming soon">เร็ว ๆ นี้</span></div>
     </div>
   </section>
 
-  <section class="cat" data-cat="wear" aria-labelledby="c-wear">
-    <div class="cat-head"><span class="n">B</span><h2 id="c-wear">Smart Device และ Wearable</h2>
-      <p>อุปกรณ์ที่ผู้ใช้สวมหรือใช้เองที่บ้าน เหมาะกับการติดตามแนวโน้มและสร้างนิสัย แต่ส่วนใหญ่ไม่ใช่เครื่องมือวินิจฉัย</p></div>
+  <section class="cat" data-cat="emg" aria-labelledby="c-emg">
+    <div class="cat-head"><span class="n">B</span><h2 id="c-emg" data-en="Emergency and resuscitation">ฉุกเฉินและกู้ชีพ</h2>
+      <p data-en="Devices that decide survival in the first minutes, used by the public as well as professionals.">อุปกรณ์ที่ตัดสินการรอดชีวิตในไม่กี่นาทีแรก ใช้ได้ทั้งประชาชนทั่วไปและบุคลากรการแพทย์</p></div>
     <div class="grid">
-      <a class="card" href="wearables.html"><span class="tag">Whoop · Apple</span><h3>Whoop เทียบ Apple Watch Ultra</h3>
-        <p>เซนเซอร์ PPG, ECG, SpO2, อุณหภูมิ วัดอะไรได้จริง ผ่าน FDA อะไรบ้าง และต่างจากเครื่องมือในโรงพยาบาลอย่างไร</p>
-        <span class="pill ok">พร้อมใช้</span><span class="go">เปิดหน้า →</span></a>
-      <div class="card soon"><span class="tag">Dexcom · Abbott</span><h3>CGM เครื่องวัดน้ำตาลต่อเนื่อง</h3><p>เซนเซอร์ใต้ผิวหนังวัดน้ำตาลในของเหลวระหว่างเซลล์ทุกไม่กี่นาที</p><span class="pill">เร็ว ๆ นี้</span></div>
-      <div class="card soon"><span class="tag">Oura · Samsung</span><h3>Smart Ring</h3><p>วัดการนอนและอุณหภูมิจากนิ้ว เทียบกับนาฬิกา</p><span class="pill">เร็ว ๆ นี้</span></div>
-      <div class="card soon"><span class="tag">Omron และอื่น ๆ</span><h3>เครื่องวัดความดันที่บ้าน</h3><p>วิธีเลือกรุ่นที่ผ่าน validation และวัดให้ถูกวิธี</p><span class="pill">เร็ว ๆ นี้</span></div>
+      <a class="card" href="aed.html"><span class="tag" data-en="Defibrillation">กระตุกหัวใจด้วยไฟฟ้า</span><h3 data-en="AED (automated external defibrillator)">เครื่อง AED</h3>
+        <p data-en="Types from public AEDs to ICDs, evolution since 1947, how to use one, training bodies in Thailand and abroad, survival statistics, and a calculator for how many AEDs a community, school, factory or hospital needs.">ประเภทตั้งแต่ AED สาธารณะถึงเครื่องฝังในตัว วิวัฒนาการตั้งแต่ปี 1947 วิธีใช้ หน่วยงานฝึกอบรมในไทยและต่างประเทศ สถิติการรอดชีวิต และตัวคำนวณจำนวนเครื่องสำหรับชุมชน โรงเรียน โรงงาน และโรงพยาบาล</p>
+        <span class="pill ok" data-en="Ready">พร้อมใช้</span><span class="go" data-en="Open →">เปิดหน้า →</span></a>
     </div>
   </section>
 
   <section class="cat" data-cat="dx" aria-labelledby="c-dx">
-    <div class="cat-head"><span class="n">C</span><h2 id="c-dx">เครื่องมือวินิจฉัยและแล็บ</h2>
-      <p>มาตรฐานที่แพทย์ใช้ยืนยันผล ใช้เป็นเกณฑ์เทียบความแม่นยำของ wearable</p></div>
+    <div class="cat-head"><span class="n">C</span><h2 id="c-dx" data-en="Diagnostic and lab equipment">เครื่องมือวินิจฉัยและแล็บ</h2>
+      <p data-en="The standards doctors use to confirm results, and the benchmark for judging wearables.">มาตรฐานที่แพทย์ใช้ยืนยันผล ใช้เป็นเกณฑ์เทียบความแม่นยำของ wearable</p></div>
     <div class="grid">
-      <div class="card soon"><span class="tag">หัวใจ</span><h3>ECG 12 lead และ Holter</h3><p>ทำไม 12 มุมมองจึงจับภาวะกล้ามเนื้อหัวใจขาดเลือดได้ แต่ 1 lead ทำไม่ได้</p><span class="pill">เร็ว ๆ นี้</span></div>
-      <div class="card soon"><span class="tag">การนอน</span><h3>Polysomnography</h3><p>สายวัดคลื่นสมอง ตา กล้ามเนื้อ ลมหายใจ และออกซิเจนตลอดคืน</p><span class="pill">เร็ว ๆ นี้</span></div>
-      <div class="card soon"><span class="tag">แล็บ</span><h3>เครื่องวิเคราะห์เลือดอัตโนมัติ</h3><p>จากหลอดเลือดถึงผล HbA1c ไขมัน และค่าไต</p><span class="pill">เร็ว ๆ นี้</span></div>
+      <a class="card" href="ecg-holter.html"><span class="tag" data-en="Heart">หัวใจ</span><h3 data-en="12-lead ECG and Holter">ECG 12 lead และ Holter</h3>
+        <p data-en="Interactive electrode placement, which heart wall each lead sees, a live waveform with normal intervals, inside the machine, and how Holter, patches and loop recorders compare.">ตำแหน่งติดขั้วไฟฟ้าแบบโต้ตอบ แต่ละ lead มองผนังหัวใจด้านไหน คลื่นไฟฟ้าพร้อมค่าปกติ ส่วนประกอบในเครื่อง และเทียบ Holter, patch และเครื่องบันทึกแบบฝัง</p>
+        <span class="pill ok" data-en="Ready">พร้อมใช้</span><span class="go" data-en="Open →">เปิดหน้า →</span></a>
+      <div class="card soon"><span class="tag" data-en="Sleep">การนอน</span><h3>Polysomnography</h3><p data-en="Sensors for brain waves, eyes, muscles, breathing and oxygen all night.">สายวัดคลื่นสมอง ตา กล้ามเนื้อ ลมหายใจ และออกซิเจนตลอดคืน</p><span class="pill" data-en="Coming soon">เร็ว ๆ นี้</span></div>
+      <div class="card soon"><span class="tag" data-en="Lab">แล็บ</span><h3 data-en="Automated blood analysers">เครื่องวิเคราะห์เลือดอัตโนมัติ</h3><p data-en="From blood tube to HbA1c, lipids and kidney results.">จากหลอดเลือดถึงผล HbA1c ไขมัน และค่าไต</p><span class="pill" data-en="Coming soon">เร็ว ๆ นี้</span></div>
     </div>
   </section>
 
   <section class="cat" data-cat="img" aria-labelledby="c-img">
-    <div class="cat-head"><span class="n">D</span><h2 id="c-img">ภาพถ่ายทางการแพทย์และการฉายรังสี</h2>
-      <p>เครื่องขนาดใหญ่ในโรงพยาบาล แยกส่วนให้เห็นว่าภาพหรือการรักษาเกิดขึ้นได้อย่างไร</p></div>
+    <div class="cat-head"><span class="n">D</span><h2 id="c-img" data-en="Medical imaging and radiotherapy">ภาพถ่ายทางการแพทย์และการฉายรังสี</h2>
+      <p data-en="Large hospital machines, broken down to show how an image or treatment is produced.">เครื่องขนาดใหญ่ในโรงพยาบาล แยกส่วนให้เห็นว่าภาพหรือการรักษาเกิดขึ้นได้อย่างไร</p></div>
     <div class="grid">
-      <div class="card soon"><span class="tag">แม่เหล็ก</span><h3>MRI</h3><p>ขดลวดตัวนำยิ่งยวด คลื่นวิทยุ และการสร้างภาพจากโปรตอน</p><span class="pill">เร็ว ๆ นี้</span></div>
-      <div class="card soon"><span class="tag">รังสีเอกซ์</span><h3>CT Scan</h3><p>หลอดเอกซเรย์หมุนรอบตัว และการสร้างภาพตัดขวาง</p><span class="pill">เร็ว ๆ นี้</span></div>
-      <div class="card soon"><span class="tag">รักษามะเร็ง</span><h3>Linear Accelerator</h3><p>เครื่องเร่งอนุภาคสำหรับฉายรังสีรักษา</p><span class="pill">เร็ว ๆ นี้</span></div>
+      <a class="card" href="mri.html"><span class="tag" data-en="Magnetic resonance">แม่เหล็ก</span><h3>MRI</h3>
+        <p data-en="Cut-away 3D scanner layer by layer: superconducting magnet, gradient coils, RF coil. How protons become an image, T1 vs T2, safety, history and field strengths.">โมเดล 3D ผ่าชั้นทีละชั้น: แม่เหล็กตัวนำยิ่งยวด ขดลวด gradient ขดลวด RF โปรตอนกลายเป็นภาพได้อย่างไร T1 กับ T2 ความปลอดภัย ประวัติ และความแรงสนามแม่เหล็ก</p>
+        <span class="pill ok" data-en="Ready">พร้อมใช้</span><span class="go" data-en="Open →">เปิดหน้า →</span></a>
+      <div class="card soon"><span class="tag" data-en="X-ray">รังสีเอกซ์</span><h3>CT Scan</h3><p data-en="A rotating X-ray tube and cross-sectional reconstruction.">หลอดเอกซเรย์หมุนรอบตัว และการสร้างภาพตัดขวาง</p><span class="pill" data-en="Coming soon">เร็ว ๆ นี้</span></div>
+      <div class="card soon"><span class="tag" data-en="Cancer treatment">รักษามะเร็ง</span><h3>Linear Accelerator</h3><p data-en="A particle accelerator for radiotherapy.">เครื่องเร่งอนุภาคสำหรับฉายรังสีรักษา</p><span class="pill" data-en="Coming soon">เร็ว ๆ นี้</span></div>
+    </div>
+  </section>
+
+  <section class="cat" data-cat="wear" aria-labelledby="c-wear">
+    <div class="cat-head"><span class="n">E</span><h2 id="c-wear" data-en="Smart devices and wearables">Smart Device และ Wearable</h2>
+      <p data-en="Devices people wear or use at home. Good for trends and habits; most are not diagnostic tools.">อุปกรณ์ที่ผู้ใช้สวมหรือใช้เองที่บ้าน เหมาะกับการติดตามแนวโน้มและสร้างนิสัย แต่ส่วนใหญ่ไม่ใช่เครื่องมือวินิจฉัย</p></div>
+    <div class="grid">
+      <a class="card" href="wearables.html"><span class="tag">Whoop · Apple</span><h3 data-en="Whoop vs Apple Watch Ultra">Whoop เทียบ Apple Watch Ultra</h3>
+        <p data-en="PPG, ECG, SpO2 and temperature sensors: what they really measure, what is FDA-cleared, and how they differ from hospital equipment.">เซนเซอร์ PPG, ECG, SpO2, อุณหภูมิ วัดอะไรได้จริง ผ่าน FDA อะไรบ้าง และต่างจากเครื่องมือในโรงพยาบาลอย่างไร</p>
+        <span class="pill ok" data-en="Ready">พร้อมใช้</span><span class="go" data-en="Open →">เปิดหน้า →</span></a>
+      <div class="card soon"><span class="tag">Dexcom · Abbott</span><h3 data-en="CGM continuous glucose monitors">CGM เครื่องวัดน้ำตาลต่อเนื่อง</h3><p data-en="A sensor under the skin reads interstitial glucose every few minutes.">เซนเซอร์ใต้ผิวหนังวัดน้ำตาลในของเหลวระหว่างเซลล์ทุกไม่กี่นาที</p><span class="pill" data-en="Coming soon">เร็ว ๆ นี้</span></div>
+      <div class="card soon"><span class="tag">Oura · Samsung</span><h3>Smart Ring</h3><p data-en="Sleep and temperature from the finger, compared with watches.">วัดการนอนและอุณหภูมิจากนิ้ว เทียบกับนาฬิกา</p><span class="pill" data-en="Coming soon">เร็ว ๆ นี้</span></div>
+      <div class="card soon"><span class="tag" data-en="Omron and others">Omron และอื่น ๆ</span><h3 data-en="Home blood-pressure monitors">เครื่องวัดความดันที่บ้าน</h3><p data-en="Choosing a validated model and measuring correctly.">วิธีเลือกรุ่นที่ผ่าน validation และวัดให้ถูกวิธี</p><span class="pill" data-en="Coming soon">เร็ว ๆ นี้</span></div>
     </div>
   </section>
 
   <footer>
-    <p>เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำทางการแพทย์ ชื่อผลิตภัณฑ์เป็นเครื่องหมายการค้าของเจ้าของแต่ละราย</p>
+    <p data-en="For education only, not medical advice. Product names are trademarks of their respective owners.">เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำทางการแพทย์ ชื่อผลิตภัณฑ์เป็นเครื่องหมายการค้าของเจ้าของแต่ละราย</p>
   </footer>
 </div>
 <script>
