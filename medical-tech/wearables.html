@@ -19,6 +19,10 @@
 .tier{border-radius:12px;padding:16px;border:1px solid var(--line);background:var(--surface)}
 .tier b{font-family:var(--display);display:block;margin-bottom:4px}
 .tier .lv{font-family:var(--mono);font-size:12px;color:var(--accent)}
+.nir-fig{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;overflow-x:auto}
+.nir-fig svg{display:block;width:100%;min-width:680px;height:auto}
+svg .nt{font-family:var(--display);font-size:14px;font-weight:600;fill:var(--fg)}
+svg .ns,svg .ns text{font-family:var(--body);font-size:12.5px;fill:var(--muted)}
 </style>
 </head>
 <body>
@@ -74,8 +78,49 @@
     </div>
   </section>
 
+  <section id="nir" aria-labelledby="s-nir">
+    <div class="sec-head"><span class="eyebrow" data-en="04 · Near-infrared (NIR)">04 · แสงอินฟราเรดใกล้ (NIR)</span>
+      <h2 id="s-nir" data-en="Can a phone camera see through walls? No — but NIR is used in real medicine">กล้องมือถือมองทะลุกำแพงได้ไหม: ไม่ได้ แต่แสง NIR มีใช้จริงทางการแพทย์</h2>
+      <p data-en="Near-infrared light (about 700–1,000 nm) is just beyond what our eyes see. It passes through some thin materials that look opaque to us, and a few millimetres into skin, which is why medical devices use it. It does not pass through concrete, brick or wood.">แสงอินฟราเรดใกล้ (ราว 700–1,000 นาโนเมตร) อยู่เลยช่วงที่ตาคนมองเห็นไปเล็กน้อย ทะลุวัสดุบางชนิดที่ตาเรามองว่าทึบได้ และลงไปใต้ผิวหนังได้หลายมิลลิเมตร อุปกรณ์การแพทย์จึงนำมาใช้ แต่แสงนี้ทะลุคอนกรีต อิฐ หรือไม้ไม่ได้</p></div>
+    <div class="nir-fig">
+      <svg viewBox="0 0 900 190" role="img" aria-label="ช่วงความยาวคลื่นแสง" data-en-label="Light wavelength bands">
+        <defs><linearGradient id="vis" x1="0" x2="1"><stop offset="0" stop-color="#7B4FD6"/><stop offset=".25" stop-color="#2F63C9"/><stop offset=".45" stop-color="#2E9E5B"/><stop offset=".65" stop-color="#E6C229"/><stop offset=".82" stop-color="#E07A2E"/><stop offset="1" stop-color="#C8322B"/></linearGradient></defs>
+        <rect x="20" y="40" width="300" height="34" rx="6" fill="url(#vis)"/>
+        <rect x="320" y="40" width="360" height="34" fill="#7A2A2A" opacity=".55"/>
+        <rect x="380" y="40" width="200" height="34" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="6 4"/>
+        <rect x="700" y="40" width="180" height="34" rx="6" fill="var(--muted)" opacity=".4"/>
+        <text class="nt" x="170" y="30" text-anchor="middle" data-en="Visible 400–700 nm">มองเห็นได้ 400–700 nm</text>
+        <text class="nt" x="500" y="30" text-anchor="middle" data-en="Near-infrared 700–1,400 nm">อินฟราเรดใกล้ 700–1,400 nm</text>
+        <text class="nt" x="790" y="30" text-anchor="middle" data-en="Thermal 8–14 µm">ความร้อน 8–14 µm</text>
+        <text class="ns" x="480" y="96" text-anchor="middle" style="fill:var(--accent)" data-en="“optical window” ~650–950 nm: deepest into tissue">“หน้าต่างแสง” ~650–950 nm ลงลึกในเนื้อเยื่อที่สุด</text>
+        <text class="ns" x="170" y="96" text-anchor="middle" data-en="what eyes and normal photos see">สิ่งที่ตาและภาพถ่ายปกติเห็น</text>
+        <text class="ns" x="790" y="96" text-anchor="middle" data-en="heat on surfaces only">เห็นแค่ความร้อนที่ผิววัตถุ</text>
+        <g class="ns">
+          <text x="20" y="132" data-en="Phone cameras have an IR-cut filter that blocks most NIR so colours look right.">กล้องมือถือมีฟิลเตอร์ตัด IR กันแสง NIR ส่วนใหญ่ไว้ เพื่อให้สีภาพถูกต้อง</text>
+          <text x="20" y="152" data-en="Remove that filter and thin black plastic or some dyed fabric can look see-through — walls still cannot.">ถ้าไม่มีฟิลเตอร์นี้ พลาสติกสีดำบาง ๆ หรือผ้าย้อมบางชนิดอาจดูโปร่งขึ้น แต่กำแพงยังทะลุไม่ได้</text>
+          <text x="20" y="172" data-en="Thermal cameras show heat patterns on a wall’s surface, not what is behind it.">กล้องถ่ายภาพความร้อนเห็นแค่รูปแบบความร้อนบนผิวผนัง ไม่เห็นสิ่งที่อยู่ข้างหลัง</text>
+        </g>
+      </svg>
+    </div>
+    <div class="three" style="margin-top:14px">
+      <div class="card"><h3 data-en="OnePlus 8 Pro (2020)">OnePlus 8 Pro (2020)</h3><p data-en="Its 5 MP “Color Filter” camera let in NIR, so users found it could see faintly through thin plastic and some clothing. OnePlus temporarily disabled the filter by software update after privacy concerns.">กล้อง “Color Filter” 5MP รับแสง NIR ได้ ผู้ใช้จึงพบว่ามองทะลุพลาสติกบางและเสื้อผ้าบางชนิดได้เล็กน้อย OnePlus ปิดฟิลเตอร์นี้ชั่วคราวผ่านอัปเดตซอฟต์แวร์หลังมีข้อกังวลเรื่องความเป็นส่วนตัว</p></div>
+      <div class="card"><h3>OnePlus 8T</h3><p data-en="Has no Color Filter camera — its extra lens is a plain 2 MP monochrome camera — so it cannot do this. No phone camera sees through concrete, brick or wood.">ไม่มีกล้อง Color Filter เลนส์เสริมเป็นกล้องขาวดำ 2MP ธรรมดา จึงทำแบบนั้นไม่ได้ และไม่มีกล้องมือถือรุ่นไหนมองทะลุปูน อิฐ หรือไม้ได้</p></div>
+      <div class="card"><h3 data-en="Why apps cannot replace medical NIR">ทำไมแอปมือถือใช้แทนไม่ได้</h3><p data-en="Medical devices use their own NIR light at exact wavelengths, calibrated sensors and validated algorithms, and must be registered with Thailand’s FDA (อย.) under the Medical Device Act. A phone has none of these.">อุปกรณ์การแพทย์ใช้แหล่งแสง NIR ของตัวเองที่ความยาวคลื่นแน่นอน เซนเซอร์ที่สอบเทียบแล้ว และอัลกอริทึมที่ผ่านการทดสอบ ต้องขึ้นทะเบียนกับ อย. ตาม พ.ร.บ.เครื่องมือแพทย์ กล้องมือถือไม่มีสิ่งเหล่านี้</p></div>
+    </div>
+    <div class="tbl-wrap" style="margin-top:14px"><table>
+      <thead><tr><th data-en="Medical use of NIR">การใช้ NIR ทางการแพทย์</th><th data-en="How it works">หลักการ</th><th data-en="Where you meet it">พบที่ไหน</th></tr></thead>
+      <tbody>
+        <tr><td data-en="<b>Vein finder</b>"><b>เครื่องหาเส้นเลือด (vein finder)</b></td><td data-en="Haemoglobin absorbs NIR (around 850–940 nm) more than surrounding tissue, so veins show dark; some models project the map onto the skin. Sees only a few millimetres deep.">ฮีโมโกลบินดูดกลืน NIR (ราว 850–940 nm) มากกว่าเนื้อเยื่อรอบข้าง เส้นเลือดจึงเป็นเงาเข้ม บางรุ่นฉายภาพกลับลงบนผิว มองลึกได้เพียงไม่กี่มิลลิเมตร</td><td data-en="Blood draws and IV lines in children, older people, difficult veins">เจาะเลือดและให้น้ำเกลือในเด็ก ผู้สูงอายุ และคนที่หาเส้นยาก</td></tr>
+        <tr><td data-en="<b>Pulse oximeter</b>"><b>Pulse oximeter</b></td><td data-en="Red (~660 nm) and NIR (~940 nm) light; oxygenated and deoxygenated blood absorb them differently, giving SpO2.">ใช้แสงแดง (~660 nm) และ NIR (~940 nm) เลือดที่มีและไม่มีออกซิเจนดูดกลืนต่างกัน จึงคำนวณ SpO2 ได้</td><td data-en="Fingertip clips, ward monitors; the same idea in watches, less accurately">ที่หนีบปลายนิ้ว จอมอนิเตอร์ในหอผู้ป่วย นาฬิกาใช้หลักเดียวกันแต่แม่นน้อยกว่า</td></tr>
+        <tr><td data-en="<b>NIRS tissue oximetry</b>"><b>NIRS วัดออกซิเจนในเนื้อเยื่อ</b></td><td data-en="Pads on the forehead or limb send NIR a few centimetres deep and read oxygen saturation in brain or muscle (rSO2).">แผ่นบนหน้าผากหรือแขนขาส่ง NIR ลึกไม่กี่เซนติเมตร อ่านค่าออกซิเจนในสมองหรือกล้ามเนื้อ (rSO2)</td><td data-en="Heart surgery, neonatal ICU; fNIRS for brain research">ผ่าตัดหัวใจ ICU ทารกแรกเกิด และ fNIRS ในงานวิจัยสมอง</td></tr>
+        <tr><td data-en="<b>ICG fluorescence imaging</b>"><b>ภาพเรืองแสง ICG</b></td><td data-en="An injected dye glows under NIR, showing blood flow, bile ducts and lymph nodes during surgery.">ฉีดสี ICG แล้วส่องแสง NIR สีจะเรืองแสง เห็นการไหลของเลือด ท่อน้ำดี และต่อมน้ำเหลืองระหว่างผ่าตัด</td><td data-en="Endoscopic and robotic surgery (e.g. da Vinci Firefly)">ผ่าตัดส่องกล้องและหุ่นยนต์ (เช่น Firefly ของ <a href="da-vinci.html">da Vinci</a>)</td></tr>
+        <tr><td data-en="<b>OCT eye scan</b>"><b>OCT ตรวจจอตา</b></td><td data-en="Uses NIR light echoes to make micrometre-level cross-sections of the retina.">ใช้การสะท้อนของแสง NIR สร้างภาพตัดขวางจอตาละเอียดระดับไมโครเมตร</td><td data-en="Eye clinics: diabetic eye disease, glaucoma, macular degeneration">คลินิกตา: เบาหวานขึ้นตา ต้อหิน จอตาเสื่อม</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
   <section aria-labelledby="s4">
-    <div class="sec-head"><span class="eyebrow" data-en="04 · For the habit guide">04 · สำหรับคู่มือนิสัย</span><h2 id="s4" data-en="Three tiers of data">แบ่งข้อมูลเป็น 3 ระดับ</h2></div>
+    <div class="sec-head"><span class="eyebrow" data-en="05 · For the habit guide">05 · สำหรับคู่มือนิสัย</span><h2 id="s4" data-en="Three tiers of data">แบ่งข้อมูลเป็น 3 ระดับ</h2></div>
     <div class="tiers">
       <div class="tier"><span class="lv" data-en="Tier 1">ระดับ 1</span><b>Wearable</b><span class="muted" data-en="Build habits and track daily trends">สร้างนิสัยและติดตามแนวโน้มรายวัน</span></div>
       <div class="tier"><span class="lv" data-en="Tier 2">ระดับ 2</span><b data-en="Validated home devices">อุปกรณ์บ้านที่ผ่าน validation</b><span class="muted" data-en="BP cuff, pulse oximeter, glucose meter to confirm values">cuff วัดความดัน, pulse oximeter, เครื่องวัดน้ำตาล ใช้ยืนยันค่า</span></div>
